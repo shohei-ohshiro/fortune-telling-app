@@ -227,19 +227,46 @@ function ResultContent() {
           </CardContent>
         </Card>
 
-        {/* AI鑑定（有料枠） */}
-        <Card className="bg-white/5 border-purple-500/20 border-dashed">
+        {/* 他の占術 */}
+        <Card className="bg-white/10 border-purple-500/30">
+          <CardHeader>
+            <CardTitle className="text-white">他の占術で見る</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-3">
+              <Link href={`/numerology?year=${year}&month=${month}&day=${day}`}>
+                <div className="bg-purple-900/50 rounded-lg p-4 text-center hover:bg-purple-800/50 transition">
+                  <div className="text-2xl mb-1">🔢</div>
+                  <p className="text-white font-semibold text-sm">数秘術</p>
+                  <p className="text-purple-300 text-xs">ライフパスナンバー</p>
+                </div>
+              </Link>
+              <Link href={`/animal?year=${year}&month=${month}&day=${day}`}>
+                <div className="bg-purple-900/50 rounded-lg p-4 text-center hover:bg-purple-800/50 transition">
+                  <div className="text-2xl mb-1">🐾</div>
+                  <p className="text-white font-semibold text-sm">動物占い</p>
+                  <p className="text-purple-300 text-xs">あなたの動物キャラ</p>
+                </div>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* AI総合鑑定 */}
+        <Card className="bg-gradient-to-r from-purple-900/50 to-pink-900/50 border-purple-500/30">
           <CardContent className="pt-6 text-center space-y-3">
-            <div className="text-3xl">🔒</div>
-            <h3 className="text-white font-semibold">AI詳細鑑定</h3>
-            <p className="text-purple-300 text-sm">
-              AIがあなた専用の詳しい鑑定文を生成します。
+            <div className="text-3xl">🤖</div>
+            <h3 className="text-white font-semibold">AI総合鑑定</h3>
+            <p className="text-purple-200 text-sm">
+              四柱推命 × 数秘術 × 動物占いの結果を
               <br />
-              適職・恋愛傾向・人生のテーマなどを深掘り。
+              AIが統合して、あなただけの鑑定文を生成します。
             </p>
-            <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white">
-              有料プランで解放する
-            </Button>
+            <Link href={`/ai-reading?year=${year}&month=${month}&day=${day}${hour !== undefined ? `&hour=${hour}` : ''}`}>
+              <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white">
+                AI総合鑑定を見る &rarr;
+              </Button>
+            </Link>
           </CardContent>
         </Card>
 
