@@ -29,6 +29,11 @@ export default function HomePage() {
       <header className="flex items-center justify-between px-6 py-4">
         <h1 className="text-xl font-bold text-white">四柱推命</h1>
         <div className="flex gap-2">
+          <Link href="/pricing">
+            <Button variant="ghost" className="text-white hover:text-purple-200">
+              料金プラン
+            </Button>
+          </Link>
           <Link href="/login">
             <Button variant="ghost" className="text-white hover:text-purple-200">
               ログイン

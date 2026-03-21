@@ -271,12 +271,19 @@ function ResultContent() {
         </Card>
 
         {/* 日運リンク */}
-        <div className="text-center">
+        <div className="text-center space-y-3">
           <Link href={`/daily?year=${year}&month=${month}&day=${day}${hour !== undefined ? `&hour=${hour}` : ''}`}>
             <Button className="bg-purple-600 hover:bg-purple-500 text-white">
               今日の運勢を見る &rarr;
             </Button>
           </Link>
+          <div>
+            <Link href="/pricing">
+              <Button variant="outline" className="border-purple-500/30 text-purple-200 hover:bg-purple-900/50">
+                料金プラン &rarr;
+              </Button>
+            </Link>
+          </div>
         </div>
       </main>
     </div>

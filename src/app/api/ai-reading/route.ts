@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 温かみがありつつも具体的で、読んだ人が「自分のことだ」と感じるような文章にしてください。`;
 
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 1500,
       messages: [
         { role: 'user', content: prompt },
@@ -54,10 +54,11 @@ export async function POST(request: NextRequest) {
     const text = content.type === 'text' ? content.text : '';
 
     return NextResponse.json({ reading: text });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('AI reading error:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'AI鑑定の生成に失敗しました。しばらく経ってからお試しください。' },
+      { error: `AI鑑定の生成に失敗しました: ${message}` },
       { status: 500 }
     );
   }
