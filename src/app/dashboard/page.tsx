@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Header } from "@/components/Header";
+import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/lib/supabase";
 import {
   calculateMeishiki,
@@ -17,17 +19,16 @@ import {
   STEM_READINGS,
 } from "@/lib/shichusuimei";
 import type { Meishiki } from "@/lib/shichusuimei";
-import type { User } from "@supabase/supabase-js";
 
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading: authLoading } = useAuth();
 
   // プロフィール入力
   const [hasProfile, setHasProfile] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [birthYear, setBirthYear] = useState("");
   const [birthMonth, setBirthMonth] = useState("");
   const [birthDay, setBirthDay] = useState("");
@@ -38,15 +39,13 @@ export default function DashboardPage() {
   const [meishiki, setMeishiki] = useState<Meishiki | null>(null);
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/login");
-        return;
-      }
-      setUser(user);
+    if (authLoading) return;
+    if (!user) {
+      router.push("/login");
+      return;
+    }
 
-      // プロフィール取得
+    const loadProfile = async () => {
       const { data: profile } = await supabase
         .from("profiles")
         .select("*")
@@ -63,7 +62,6 @@ export default function DashboardPage() {
           setBirthHour(String(Number(profile.birth_time.split(":")[0])));
         }
 
-        // 命式を計算
         const hour = profile.birth_time
           ? Number(profile.birth_time.split(":")[0])
           : undefined;
@@ -71,11 +69,11 @@ export default function DashboardPage() {
         setMeishiki(m2);
       }
 
-      setLoading(false);
+      setProfileLoading(false);
     };
 
-    checkUser();
-  }, [router]);
+    loadProfile();
+  }, [user, authLoading, router]);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +95,6 @@ export default function DashboardPage() {
       return;
     }
 
-    // 命式を計算
     const hour = birthHour ? Number(birthHour) : undefined;
     const m = calculateMeishiki(
       Number(birthYear),
@@ -110,15 +107,13 @@ export default function DashboardPage() {
     setSaving(false);
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push("/");
-  };
-
-  if (loading) {
+  if (authLoading || profileLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950 flex items-center justify-center">
-        <p className="text-purple-300">読み込み中...</p>
+      <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950">
+        <Header />
+        <div className="flex items-center justify-center pt-32">
+          <p className="text-purple-300">読み込み中...</p>
+        </div>
       </div>
     );
   }
@@ -127,12 +122,7 @@ export default function DashboardPage() {
   if (!hasProfile) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950">
-        <header className="flex items-center justify-between px-6 py-4">
-          <h1 className="text-xl font-bold text-white">四柱推命</h1>
-          <Button variant="ghost" className="text-purple-300" onClick={handleLogout}>
-            ログアウト
-          </Button>
-        </header>
+        <Header />
         <main className="flex flex-col items-center px-4 pt-12">
           <Card className="w-full max-w-md bg-white/10 border-purple-500/30">
             <CardHeader>
@@ -196,17 +186,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950">
-      <header className="flex items-center justify-between px-6 py-4">
-        <h1 className="text-xl font-bold text-white">四柱推命</h1>
-        <div className="flex gap-2 items-center">
-          <span className="text-purple-300 text-sm hidden sm:inline">
-            {user?.email}
-          </span>
-          <Button variant="ghost" className="text-purple-300" onClick={handleLogout}>
-            ログアウト
-          </Button>
-        </div>
-      </header>
+      <Header />
 
       <main className="max-w-2xl mx-auto px-4 pb-16 space-y-6">
         <div className="text-purple-200 text-lg">

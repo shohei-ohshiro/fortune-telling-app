@@ -7,6 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Header } from "@/components/Header";
+
+type FortuneType = "shichusuimei" | "numerology" | "animal";
+
+const FORTUNE_TYPES: { id: FortuneType; icon: string; name: string; desc: string; path: string }[] = [
+  { id: "shichusuimei", icon: "🏛️", name: "四柱推命", desc: "生年月日から命式を算出", path: "/result" },
+  { id: "numerology", icon: "🔢", name: "数秘術", desc: "ライフパスナンバーで診断", path: "/numerology" },
+  { id: "animal", icon: "🐾", name: "動物占い", desc: "あなたの動物キャラは？", path: "/animal" },
+];
 
 export default function HomePage() {
   const router = useRouter();
@@ -14,42 +23,24 @@ export default function HomePage() {
   const [month, setMonth] = useState("");
   const [day, setDay] = useState("");
   const [hour, setHour] = useState("");
+  const [selectedType, setSelectedType] = useState<FortuneType>("shichusuimei");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!year || !month || !day) return;
     const params = new URLSearchParams({ year, month, day });
     if (hour) params.set("hour", hour);
-    router.push(`/result?${params.toString()}`);
+    const fortune = FORTUNE_TYPES.find((f) => f.id === selectedType)!;
+    router.push(`${fortune.path}?${params.toString()}`);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950">
-      {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4">
-        <h1 className="text-xl font-bold text-white">四柱推命</h1>
-        <div className="flex gap-2">
-          <Link href="/pricing">
-            <Button variant="ghost" className="text-white hover:text-purple-200">
-              料金プラン
-            </Button>
-          </Link>
-          <Link href="/login">
-            <Button variant="ghost" className="text-white hover:text-purple-200">
-              ログイン
-            </Button>
-          </Link>
-          <Link href="/signup">
-            <Button className="bg-purple-600 hover:bg-purple-500 text-white">
-              無料登録
-            </Button>
-          </Link>
-        </div>
-      </header>
+      <Header />
 
       {/* Hero */}
-      <main className="flex flex-col items-center px-4 pt-16 pb-24">
-        <div className="text-center mb-12">
+      <main className="flex flex-col items-center px-4 pt-12 pb-24">
+        <div className="text-center mb-10">
           <p className="text-purple-300 text-lg mb-2">
             あなたの運命を読み解く
           </p>
@@ -63,11 +54,31 @@ export default function HomePage() {
           </p>
         </div>
 
+        {/* 占術選択 */}
+        <div className="grid grid-cols-3 gap-3 w-full max-w-md mb-6">
+          {FORTUNE_TYPES.map((type) => (
+            <button
+              key={type.id}
+              onClick={() => setSelectedType(type.id)}
+              className={`rounded-xl p-3 text-center transition-all ${
+                selectedType === type.id
+                  ? "bg-purple-600/50 border-2 border-purple-400 shadow-lg shadow-purple-500/20"
+                  : "bg-white/5 border-2 border-transparent hover:bg-white/10"
+              }`}
+            >
+              <div className="text-2xl mb-1">{type.icon}</div>
+              <p className="text-white font-semibold text-sm">{type.name}</p>
+              <p className="text-purple-300 text-xs mt-0.5">{type.desc}</p>
+            </button>
+          ))}
+        </div>
+
         {/* 入力フォーム */}
         <Card className="w-full max-w-md bg-white/10 border-purple-500/30 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-white text-center">
-              無料で占う
+              {FORTUNE_TYPES.find((f) => f.id === selectedType)?.icon}{" "}
+              {FORTUNE_TYPES.find((f) => f.id === selectedType)?.name}で占う
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -117,23 +128,25 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div>
-                <Label className="text-purple-200">
-                  出生時刻（わかる方のみ）
-                </Label>
-                <div className="mt-1">
-                  <Input
-                    type="number"
-                    placeholder="例: 14"
-                    value={hour}
-                    onChange={(e) => setHour(e.target.value)}
-                    min="0"
-                    max="23"
-                    className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-400 w-24"
-                  />
-                  <span className="text-xs text-purple-300 mt-0.5 block">時（0〜23時）</span>
+              {selectedType === "shichusuimei" && (
+                <div>
+                  <Label className="text-purple-200">
+                    出生時刻（わかる方のみ）
+                  </Label>
+                  <div className="mt-1">
+                    <Input
+                      type="number"
+                      placeholder="例: 14"
+                      value={hour}
+                      onChange={(e) => setHour(e.target.value)}
+                      min="0"
+                      max="23"
+                      className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-400 w-24"
+                    />
+                    <span className="text-xs text-purple-300 mt-0.5 block">時（0〜23時）</span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <Button
                 type="submit"
@@ -145,8 +158,30 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
+        {/* 全占術一覧 */}
+        <div className="mt-12 w-full max-w-2xl">
+          <h3 className="text-white text-lg font-semibold text-center mb-4">すべての占術</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { icon: "🏛️", name: "四柱推命", desc: "命式・性格・運勢", href: null },
+              { icon: "🔢", name: "数秘術", desc: "ライフパスナンバー", href: null },
+              { icon: "🐾", name: "動物占い", desc: "動物キャラ診断", href: null },
+              { icon: "🤖", name: "AI総合鑑定", desc: "3占術を統合分析", href: null },
+            ].map((item) => (
+              <div
+                key={item.name}
+                className="bg-white/5 rounded-xl p-4 text-center hover:bg-white/10 transition"
+              >
+                <div className="text-3xl mb-2">{item.icon}</div>
+                <h4 className="text-white font-semibold text-sm">{item.name}</h4>
+                <p className="text-purple-300 text-xs mt-1">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* 特徴 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 max-w-2xl w-full">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12 max-w-2xl w-full">
           {[
             { icon: "📖", title: "本格四柱推命", desc: "伝統的な命術で鑑定" },
             { icon: "🔄", title: "毎日更新", desc: "日運を毎日チェック" },

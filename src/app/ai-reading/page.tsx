@@ -5,6 +5,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Header } from "@/components/Header";
 import { calculateMeishiki, getPersonality } from "@/lib/shichusuimei";
 import { getNumerologyResult } from "@/lib/numerology";
 import { calculateAnimal } from "@/lib/animal";
@@ -84,13 +85,7 @@ function AIReadingContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950">
-      <header className="flex items-center justify-between px-6 py-4">
-        <Link href={`/result?${params}`} className="text-purple-300 hover:text-white text-sm">
-          &larr; 命式に戻る
-        </Link>
-        <h1 className="text-xl font-bold text-white">AI総合鑑定</h1>
-        <div className="w-20" />
-      </header>
+      <Header />
 
       <main className="max-w-2xl mx-auto px-4 pb-16 space-y-6">
         <div className="text-center text-purple-300">

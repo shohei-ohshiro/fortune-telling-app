@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Header } from "@/components/Header";
 import { getNumerologyResult } from "@/lib/numerology";
 
 function NumerologyContent() {
@@ -31,13 +32,7 @@ function NumerologyContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950">
-      <header className="flex items-center justify-between px-6 py-4">
-        <Link href={`/result?year=${year}&month=${month}&day=${day}`} className="text-purple-300 hover:text-white text-sm">
-          &larr; 命式に戻る
-        </Link>
-        <h1 className="text-xl font-bold text-white">数秘術</h1>
-        <div className="w-20" />
-      </header>
+      <Header />
 
       <main className="max-w-2xl mx-auto px-4 pb-16 space-y-6">
         <div className="text-center text-purple-300">

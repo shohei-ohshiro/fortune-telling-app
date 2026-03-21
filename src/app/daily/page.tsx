@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Header } from "@/components/Header";
 import {
   calculateMeishiki,
   calculateDailyFortune,
@@ -85,16 +86,7 @@ function DailyContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950">
-      <header className="flex items-center justify-between px-6 py-4">
-        <Link
-          href={`/result?year=${year}&month=${month}&day=${day}${hour !== undefined ? `&hour=${hour}` : ''}`}
-          className="text-purple-300 hover:text-white text-sm"
-        >
-          &larr; 命式に戻る
-        </Link>
-        <h1 className="text-xl font-bold text-white">今日の運勢</h1>
-        <div className="w-20" />
-      </header>
+      <Header />
 
       <main className="max-w-2xl mx-auto px-4 pb-16 space-y-6">
         {/* 日付とタイプ */}
