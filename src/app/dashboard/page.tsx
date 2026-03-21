@@ -1,0 +1,296 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/lib/supabase";
+import {
+  calculateMeishiki,
+  calculateDailyFortune,
+  calculateWeeklyFortune,
+  getPersonality,
+  STEM_READINGS,
+} from "@/lib/shichusuimei";
+import type { Meishiki } from "@/lib/shichusuimei";
+import type { User } from "@supabase/supabase-js";
+
+const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
+
+export default function DashboardPage() {
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // プロフィール入力
+  const [hasProfile, setHasProfile] = useState(false);
+  const [birthYear, setBirthYear] = useState("");
+  const [birthMonth, setBirthMonth] = useState("");
+  const [birthDay, setBirthDay] = useState("");
+  const [birthHour, setBirthHour] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  // 命式・日運データ
+  const [meishiki, setMeishiki] = useState<Meishiki | null>(null);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+      setUser(user);
+
+      // プロフィール取得
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (profile?.birth_date) {
+        setHasProfile(true);
+        const [y, m, d] = profile.birth_date.split("-");
+        setBirthYear(y);
+        setBirthMonth(String(Number(m)));
+        setBirthDay(String(Number(d)));
+        if (profile.birth_time) {
+          setBirthHour(String(Number(profile.birth_time.split(":")[0])));
+        }
+
+        // 命式を計算
+        const hour = profile.birth_time
+          ? Number(profile.birth_time.split(":")[0])
+          : undefined;
+        const m2 = calculateMeishiki(Number(y), Number(m), Number(d), hour);
+        setMeishiki(m2);
+      }
+
+      setLoading(false);
+    };
+
+    checkUser();
+  }, [router]);
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !birthYear || !birthMonth || !birthDay) return;
+    setSaving(true);
+
+    const birthDate = `${birthYear}-${birthMonth.padStart(2, "0")}-${birthDay.padStart(2, "0")}`;
+    const birthTime = birthHour ? `${birthHour.padStart(2, "0")}:00:00` : null;
+
+    const { error } = await supabase.from("profiles").upsert({
+      id: user.id,
+      birth_date: birthDate,
+      birth_time: birthTime,
+    });
+
+    if (error) {
+      alert("保存に失敗しました: " + error.message);
+      setSaving(false);
+      return;
+    }
+
+    // 命式を計算
+    const hour = birthHour ? Number(birthHour) : undefined;
+    const m = calculateMeishiki(
+      Number(birthYear),
+      Number(birthMonth),
+      Number(birthDay),
+      hour
+    );
+    setMeishiki(m);
+    setHasProfile(true);
+    setSaving(false);
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950 flex items-center justify-center">
+        <p className="text-purple-300">読み込み中...</p>
+      </div>
+    );
+  }
+
+  // 生年月日未入力 → 入力フォーム表示
+  if (!hasProfile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950">
+        <header className="flex items-center justify-between px-6 py-4">
+          <h1 className="text-xl font-bold text-white">四柱推命</h1>
+          <Button variant="ghost" className="text-purple-300" onClick={handleLogout}>
+            ログアウト
+          </Button>
+        </header>
+        <main className="flex flex-col items-center px-4 pt-12">
+          <Card className="w-full max-w-md bg-white/10 border-purple-500/30">
+            <CardHeader>
+              <CardTitle className="text-white text-center">
+                生年月日を入力してください
+              </CardTitle>
+              <p className="text-purple-300 text-center text-sm">
+                鑑定に必要な情報です
+              </p>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSaveProfile} className="space-y-4">
+                <div>
+                  <Label className="text-purple-200">生年月日</Label>
+                  <div className="grid grid-cols-3 gap-2 mt-1">
+                    <div>
+                      <Input type="number" placeholder="1990" value={birthYear} onChange={(e) => setBirthYear(e.target.value)} min="1920" max="2030" className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-400" required />
+                      <span className="text-xs text-purple-300 block text-center">年</span>
+                    </div>
+                    <div>
+                      <Input type="number" placeholder="1" value={birthMonth} onChange={(e) => setBirthMonth(e.target.value)} min="1" max="12" className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-400" required />
+                      <span className="text-xs text-purple-300 block text-center">月</span>
+                    </div>
+                    <div>
+                      <Input type="number" placeholder="1" value={birthDay} onChange={(e) => setBirthDay(e.target.value)} min="1" max="31" className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-400" required />
+                      <span className="text-xs text-purple-300 block text-center">日</span>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-purple-200">出生時刻（任意）</Label>
+                  <Input type="number" placeholder="例: 14" value={birthHour} onChange={(e) => setBirthHour(e.target.value)} min="0" max="23" className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-400 w-24 mt-1" />
+                  <span className="text-xs text-purple-300 block">時（0〜23時）</span>
+                </div>
+                <Button type="submit" disabled={saving} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+                  {saving ? "保存中..." : "保存して鑑定する"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
+  // ダッシュボード表示
+  const personality = meishiki ? getPersonality(meishiki.dayStem) : null;
+  const today = new Date();
+  const todayFortune = meishiki
+    ? calculateDailyFortune(meishiki.dayStem, today)
+    : null;
+
+  const startOfWeek = new Date(today);
+  const dow = today.getDay();
+  startOfWeek.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
+  const weeklyFortunes = meishiki
+    ? calculateWeeklyFortune(meishiki.dayStem, startOfWeek)
+    : [];
+
+  const resultParams = `year=${birthYear}&month=${birthMonth}&day=${birthDay}${birthHour ? `&hour=${birthHour}` : ""}`;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950">
+      <header className="flex items-center justify-between px-6 py-4">
+        <h1 className="text-xl font-bold text-white">四柱推命</h1>
+        <div className="flex gap-2 items-center">
+          <span className="text-purple-300 text-sm hidden sm:inline">
+            {user?.email}
+          </span>
+          <Button variant="ghost" className="text-purple-300" onClick={handleLogout}>
+            ログアウト
+          </Button>
+        </div>
+      </header>
+
+      <main className="max-w-2xl mx-auto px-4 pb-16 space-y-6">
+        <div className="text-purple-200 text-lg">
+          こんにちは{user?.email ? `、${user.email.split("@")[0]}さん` : ""}
+        </div>
+
+        {/* 今日の運勢 */}
+        {todayFortune && (
+          <Link href={`/daily?${resultParams}`}>
+            <Card className="bg-white/10 border-purple-500/30 hover:bg-white/15 transition cursor-pointer">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-purple-300 text-sm">
+                      {today.getMonth() + 1}/{today.getDate()}（{WEEKDAY_LABELS[today.getDay()]}）の運勢
+                    </div>
+                    <div className="text-yellow-400 text-xl mt-1">
+                      {"★".repeat(todayFortune.overall)}
+                      {"☆".repeat(5 - todayFortune.overall)}
+                    </div>
+                    <p className="text-purple-100 text-sm mt-2">
+                      「{todayFortune.advice}」
+                    </p>
+                  </div>
+                  <span className="text-purple-400 text-2xl">&rarr;</span>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        )}
+
+        {/* 命式サマリー */}
+        {meishiki && personality && (
+          <Link href={`/result?${resultParams}`}>
+            <Card className="bg-white/10 border-purple-500/30 hover:bg-white/15 transition cursor-pointer mt-4">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-purple-300 text-sm">あなたの命式</div>
+                    <div className="text-white text-lg font-semibold mt-1">
+                      日主：{meishiki.dayStem}（{STEM_READINGS[meishiki.dayStem]}）
+                    </div>
+                    <Badge className="bg-purple-900/50 text-purple-200 mt-1">
+                      {personality.title}
+                    </Badge>
+                  </div>
+                  <span className="text-purple-400 text-2xl">&rarr;</span>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        )}
+
+        {/* 週間カレンダー */}
+        {weeklyFortunes.length > 0 && (
+          <Card className="bg-white/10 border-purple-500/30">
+            <CardHeader>
+              <CardTitle className="text-white text-lg">今週の運勢</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-7 gap-1 text-center">
+                {weeklyFortunes.map((f, i) => {
+                  const d = new Date(startOfWeek);
+                  d.setDate(d.getDate() + i);
+                  const isToday = d.toDateString() === today.toDateString();
+                  const wIdx = d.getDay();
+                  return (
+                    <div
+                      key={f.date}
+                      className={`py-2 rounded-lg ${isToday ? "bg-purple-600/50 ring-1 ring-purple-400" : ""}`}
+                    >
+                      <div className={`text-xs ${wIdx === 0 ? "text-red-400" : wIdx === 6 ? "text-blue-400" : "text-purple-300"}`}>
+                        {WEEKDAY_LABELS[wIdx]}
+                      </div>
+                      <div className="text-white text-sm font-semibold">{d.getDate()}</div>
+                      <div className="text-yellow-400 text-xs mt-1">{"★".repeat(f.overall)}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </main>
+    </div>
+  );
+}
