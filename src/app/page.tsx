@@ -9,12 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Header } from "@/components/Header";
 
-type FortuneType = "shichusuimei" | "numerology" | "animal";
+type FortuneType = "shichusuimei" | "numerology" | "animal" | "zodiac";
 
 const FORTUNE_TYPES: { id: FortuneType; icon: string; name: string; desc: string; path: string }[] = [
   { id: "shichusuimei", icon: "🏛️", name: "四柱推命", desc: "生年月日から命式を算出", path: "/result" },
   { id: "numerology", icon: "🔢", name: "数秘術", desc: "ライフパスナンバーで診断", path: "/numerology" },
   { id: "animal", icon: "🐾", name: "動物占い", desc: "あなたの動物キャラは？", path: "/animal" },
+  { id: "zodiac", icon: "⭐", name: "星座占い", desc: "12星座で性格診断", path: "/zodiac" },
 ];
 
 export default function HomePage() {
@@ -55,7 +56,7 @@ export default function HomePage() {
         </div>
 
         {/* 占術選択 */}
-        <div className="grid grid-cols-3 gap-3 w-full max-w-md mb-6">
+        <div className="grid grid-cols-4 gap-3 w-full max-w-lg mb-6">
           {FORTUNE_TYPES.map((type) => (
             <button
               key={type.id}
@@ -163,10 +164,11 @@ export default function HomePage() {
           <h3 className="text-white text-lg font-semibold text-center mb-4">すべての占術</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { icon: "🏛️", name: "四柱推命", desc: "命式・性格・運勢", href: null },
-              { icon: "🔢", name: "数秘術", desc: "ライフパスナンバー", href: null },
-              { icon: "🐾", name: "動物占い", desc: "動物キャラ診断", href: null },
-              { icon: "🤖", name: "AI総合鑑定", desc: "3占術を統合分析", href: null },
+              { icon: "🏛️", name: "四柱推命", desc: "命式・性格・運勢" },
+              { icon: "🔢", name: "数秘術", desc: "ライフパスナンバー" },
+              { icon: "🐾", name: "動物占い", desc: "動物キャラ診断" },
+              { icon: "⭐", name: "星座占い", desc: "12星座で性格診断" },
+              { icon: "🤖", name: "AI総合鑑定", desc: "全占術を統合分析" },
             ].map((item) => (
               <div
                 key={item.name}

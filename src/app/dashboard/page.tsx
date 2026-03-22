@@ -19,6 +19,9 @@ import {
   STEM_READINGS,
 } from "@/lib/shichusuimei";
 import type { Meishiki } from "@/lib/shichusuimei";
+import { getNumerologyResult } from "@/lib/numerology";
+import { calculateAnimal } from "@/lib/animal";
+import { calculateZodiac } from "@/lib/zodiac";
 
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
 
@@ -239,6 +242,58 @@ export default function DashboardPage() {
             </Card>
           </Link>
         )}
+
+        {/* 全占術メニュー */}
+        {birthYear && birthMonth && birthDay && (() => {
+          const numResult = getNumerologyResult(Number(birthYear), Number(birthMonth), Number(birthDay));
+          const animalResult = calculateAnimal(Number(birthYear), Number(birthMonth), Number(birthDay));
+          const zodiacResult = calculateZodiac(Number(birthMonth), Number(birthDay));
+          const baseParams = `year=${birthYear}&month=${birthMonth}&day=${birthDay}`;
+
+          return (
+            <Card className="bg-white/10 border-purple-500/30">
+              <CardHeader>
+                <CardTitle className="text-white text-lg">あなたの占い結果</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-3">
+                  <Link href={`/numerology?${baseParams}`}>
+                    <div className="bg-purple-900/30 rounded-xl p-4 text-center hover:bg-purple-800/40 transition">
+                      <div className="text-2xl mb-1">🔢</div>
+                      <p className="text-white font-semibold text-sm">数秘術</p>
+                      <p className="text-purple-200 text-xs mt-1">No.{numResult.lifePathNumber}</p>
+                      <p className="text-purple-300 text-xs">{numResult.title}</p>
+                    </div>
+                  </Link>
+                  <Link href={`/animal?${baseParams}`}>
+                    <div className="bg-purple-900/30 rounded-xl p-4 text-center hover:bg-purple-800/40 transition">
+                      <div className="text-2xl mb-1">{animalResult.emoji}</div>
+                      <p className="text-white font-semibold text-sm">動物占い</p>
+                      <p className="text-purple-200 text-xs mt-1">{animalResult.animal}</p>
+                      <p className="text-purple-300 text-xs">{animalResult.title}</p>
+                    </div>
+                  </Link>
+                  <Link href={`/zodiac?${baseParams}`}>
+                    <div className="bg-purple-900/30 rounded-xl p-4 text-center hover:bg-purple-800/40 transition">
+                      <div className="text-2xl mb-1">{zodiacResult.emoji}</div>
+                      <p className="text-white font-semibold text-sm">星座占い</p>
+                      <p className="text-purple-200 text-xs mt-1">{zodiacResult.sign}</p>
+                      <p className="text-purple-300 text-xs">{zodiacResult.title}</p>
+                    </div>
+                  </Link>
+                  <Link href={`/ai-reading?${resultParams}`}>
+                    <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 rounded-xl p-4 text-center hover:from-purple-800/40 hover:to-pink-800/40 transition">
+                      <div className="text-2xl mb-1">🤖</div>
+                      <p className="text-white font-semibold text-sm">AI総合鑑定</p>
+                      <p className="text-purple-200 text-xs mt-1">全占術を統合</p>
+                      <p className="text-purple-300 text-xs">AIが分析</p>
+                    </div>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* 週間カレンダー */}
         {weeklyFortunes.length > 0 && (

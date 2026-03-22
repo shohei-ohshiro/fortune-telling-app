@@ -228,7 +228,7 @@ function ResultContent() {
             <CardTitle className="text-white">他の占術で見る</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <Link href={`/numerology?year=${year}&month=${month}&day=${day}`}>
                 <div className="bg-purple-900/50 rounded-lg p-4 text-center hover:bg-purple-800/50 transition">
                   <div className="text-2xl mb-1">🔢</div>
@@ -241,6 +241,13 @@ function ResultContent() {
                   <div className="text-2xl mb-1">🐾</div>
                   <p className="text-white font-semibold text-sm">動物占い</p>
                   <p className="text-purple-300 text-xs">あなたの動物キャラ</p>
+                </div>
+              </Link>
+              <Link href={`/zodiac?year=${year}&month=${month}&day=${day}`}>
+                <div className="bg-purple-900/50 rounded-lg p-4 text-center hover:bg-purple-800/50 transition">
+                  <div className="text-2xl mb-1">⭐</div>
+                  <p className="text-white font-semibold text-sm">星座占い</p>
+                  <p className="text-purple-300 text-xs">12星座で診断</p>
                 </div>
               </Link>
             </div>
