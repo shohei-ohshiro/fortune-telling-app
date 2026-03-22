@@ -25,7 +25,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    // OAuth コールバックのコード交換を処理
+    const handleOAuthCallback = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+
+      if (code) {
+        await supabase.auth.exchangeCodeForSession(code);
+        // URL からコードパラメータを除去
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    };
+
+    handleOAuthCallback().then(async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
       setLoading(false);
     });
