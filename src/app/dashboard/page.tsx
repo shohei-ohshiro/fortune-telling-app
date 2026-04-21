@@ -281,12 +281,12 @@ export default function DashboardPage() {
                       <p className="text-purple-300 text-xs">{zodiacResult.title}</p>
                     </div>
                   </Link>
-                  <Link href={`/ai-reading?${resultParams}`}>
-                    <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 rounded-xl p-4 text-center hover:from-purple-800/40 hover:to-pink-800/40 transition">
-                      <div className="text-2xl mb-1">🤖</div>
-                      <p className="text-white font-semibold text-sm">AI総合鑑定</p>
-                      <p className="text-purple-200 text-xs mt-1">全占術を統合</p>
-                      <p className="text-purple-300 text-xs">AIが分析</p>
+                  <Link href={`/daily?${resultParams}`}>
+                    <div className="bg-purple-900/30 rounded-xl p-4 text-center hover:bg-purple-800/40 transition">
+                      <div className="text-2xl mb-1">📅</div>
+                      <p className="text-white font-semibold text-sm">今日の運勢</p>
+                      <p className="text-purple-200 text-xs mt-1">毎日更新</p>
+                      <p className="text-purple-300 text-xs">日運チェック</p>
                     </div>
                   </Link>
                 </div>

@@ -15,29 +15,24 @@ export function Header() {
   };
 
   return (
-    <header className="flex items-center justify-between px-6 py-4">
-      <Link href={user ? "/dashboard" : "/"} className="text-xl font-bold text-white hover:text-purple-200 transition">
+    <header className="flex items-center justify-between px-4 sm:px-6 py-4">
+      <Link href={user ? "/dashboard" : "/"} className="text-xl font-bold text-white hover:text-purple-200 transition shrink-0">
         四柱推命
       </Link>
-      <div className="flex gap-2">
-        <Link href="/pricing">
-          <Button variant="ghost" className="text-white hover:text-purple-200">
-            料金プラン
-          </Button>
-        </Link>
+      <nav className="flex items-center gap-1 sm:gap-2">
         {loading ? (
-          <div className="w-20" />
+          <div className="w-16 sm:w-20" />
         ) : user ? (
           <>
             <Link href="/dashboard">
-              <Button variant="ghost" className="text-white hover:text-purple-200">
+              <Button variant="ghost" className="text-white hover:text-purple-200 text-xs sm:text-sm px-2 sm:px-4">
                 マイページ
               </Button>
             </Link>
             <Button
               onClick={handleSignOut}
               variant="outline"
-              className="border-purple-500/30 text-purple-200 hover:bg-purple-900/50"
+              className="border-purple-500/30 text-purple-200 hover:bg-purple-900/50 text-xs sm:text-sm px-2 sm:px-4"
             >
               ログアウト
             </Button>
@@ -45,18 +40,18 @@ export function Header() {
         ) : (
           <>
             <Link href="/login">
-              <Button variant="ghost" className="text-white hover:text-purple-200">
+              <Button variant="ghost" className="text-white hover:text-purple-200 text-xs sm:text-sm px-2 sm:px-4">
                 ログイン
               </Button>
             </Link>
             <Link href="/signup">
-              <Button className="bg-purple-600 hover:bg-purple-500 text-white">
+              <Button className="bg-purple-600 hover:bg-purple-500 text-white text-xs sm:text-sm px-2 sm:px-4">
                 無料登録
               </Button>
             </Link>
           </>
         )}
-      </div>
+      </nav>
     </header>
   );
 }

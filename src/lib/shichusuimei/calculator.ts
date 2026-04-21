@@ -74,10 +74,13 @@ function getDayPillar(year: number, month: number, day: number): { stem: Stem; b
 
 /**
  * 時干支を算出する
+ * minute を考慮することで境界時刻（例: 22:59 vs 23:00）を正確に判定する
  */
-function getHourPillar(dayStem: Stem, hour: number): { stem: Stem; branch: Branch } {
-  // 時支: 23-1時=子, 1-3時=丑, ...
-  const branchIndex = Math.floor(((hour + 1) % 24) / 2);
+function getHourPillar(dayStem: Stem, hour: number, minute: number = 0): { stem: Stem; branch: Branch } {
+  // 分を含めた精密な時刻で時支境界を判定
+  const preciseHour = hour + minute / 60;
+  // 時支: 23:00-1:00=子, 1:00-3:00=丑, ...
+  const branchIndex = Math.floor(((preciseHour + 1) % 24) / 2);
   const branch = HOUR_BRANCHES[branchIndex];
 
   // 時干の算出: 日干から起算
@@ -147,6 +150,7 @@ export function calculateMeishiki(
   month: number,
   day: number,
   hour?: number,
+  minute?: number,
 ): Meishiki {
   const yearPillar = getYearPillar(year);
   const monthPillar = getMonthPillar(yearPillar.stem, month);
@@ -155,7 +159,7 @@ export function calculateMeishiki(
   let hourStem: Stem | null = null;
   let hourBranch: Branch | null = null;
   if (hour !== undefined) {
-    const hourPillar = getHourPillar(dayPillar.stem, hour);
+    const hourPillar = getHourPillar(dayPillar.stem, hour, minute ?? 0);
     hourStem = hourPillar.stem;
     hourBranch = hourPillar.branch;
   }

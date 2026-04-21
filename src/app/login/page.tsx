@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,12 +11,16 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/lib/supabase";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const afterLoginPath = redirectTo || "/dashboard";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,14 +38,14 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/dashboard");
+    router.push(afterLoginPath);
   };
 
   const handleGoogleLogin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${window.location.origin}${afterLoginPath}`,
       },
     });
     if (error) {
@@ -116,7 +121,7 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-4 text-center">
-            <Link href="/signup" className="text-purple-300 hover:text-white text-sm">
+            <Link href={`/signup${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`} className="text-purple-300 hover:text-white text-sm">
               アカウントをお持ちでない方はこちら
             </Link>
           </div>
@@ -128,5 +133,13 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950 flex items-center justify-center"><p className="text-purple-300">読み込み中...</p></div>}>
+      <LoginContent />
+    </Suspense>
   );
 }

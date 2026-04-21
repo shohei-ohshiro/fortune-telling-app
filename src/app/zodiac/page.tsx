@@ -6,8 +6,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Header } from "@/components/Header";
+import { PremiumText } from "@/components/PremiumText";
 import { calculateZodiac, ELEMENT_COLORS } from "@/lib/zodiac";
 
 function ZodiacContent() {
@@ -37,9 +37,13 @@ function ZodiacContent() {
       <Header />
 
       <main className="max-w-2xl mx-auto px-4 pb-16 space-y-6">
+        <h1 className="text-center text-white text-2xl font-bold">星座占い 鑑定結果</h1>
         <div className="text-center text-purple-300">
           {year ? `${year}年` : ""}{month}月{day}日 生まれ
         </div>
+        <p className="text-center text-purple-400 text-sm px-4">
+          同じ星座でも10日区切りのデカンで性格が異なります。36タイプで読み解くあなたの星座エネルギーです。
+        </p>
 
         {/* 星座カード */}
         <Card className="bg-white/10 border-purple-500/30 overflow-hidden">
@@ -75,7 +79,7 @@ function ZodiacContent() {
           </Card>
         </div>
 
-        {/* デカン（個人別の詳細） */}
+        {/* デカン */}
         <Card className="bg-gradient-to-br from-indigo-900/60 to-purple-900/60 border-indigo-400/40">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -93,10 +97,10 @@ function ZodiacContent() {
           </CardContent>
         </Card>
 
-        {/* 性格の詳細解説 */}
+        {/* 性格の特徴 */}
         <Card className="bg-white/10 border-purple-500/30">
           <CardHeader>
-            <CardTitle className="text-white">性格の特徴</CardTitle>
+            <CardTitle className="text-white">{result.sign}の性格</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-purple-100 leading-relaxed">{result.description}</p>
@@ -112,42 +116,6 @@ function ZodiacContent() {
           </CardHeader>
           <CardContent>
             <p className="text-purple-100 leading-relaxed">{result.temperament}</p>
-          </CardContent>
-        </Card>
-
-        {/* 行動パターン */}
-        <Card className="bg-white/10 border-purple-500/30">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <span className="text-xl">⚡</span>行動パターン
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-purple-100 leading-relaxed">{result.behaviorPattern}</p>
-          </CardContent>
-        </Card>
-
-        {/* 対人傾向 */}
-        <Card className="bg-white/10 border-purple-500/30">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <span className="text-xl">💬</span>対人傾向・コミュニケーション
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-purple-100 leading-relaxed">{result.interpersonal}</p>
-          </CardContent>
-        </Card>
-
-        {/* 守護星の影響 */}
-        <Card className="bg-white/10 border-purple-500/30">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <span className="text-xl">🪐</span>守護星「{result.rulingPlanet}」の影響
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-purple-100 leading-relaxed">{result.planetInfluence}</p>
           </CardContent>
         </Card>
 
@@ -173,6 +141,30 @@ function ZodiacContent() {
           </CardContent>
         </Card>
 
+        {/* 守護星の影響 */}
+        <Card className="bg-white/10 border-purple-500/30">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <span className="text-xl">🪐</span>守護星「{result.rulingPlanet}」の影響
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-purple-100 leading-relaxed">{result.planetInfluence}</p>
+          </CardContent>
+        </Card>
+
+        {/* 行動パターン */}
+        <Card className="bg-white/10 border-purple-500/30">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <span className="text-xl">⚡</span>行動パターン
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-purple-100 leading-relaxed">{result.behaviorPattern}</p>
+          </CardContent>
+        </Card>
+
         {/* ラッキー情報 & 相性 */}
         <div className="grid grid-cols-2 gap-3">
           <Card className="bg-white/10 border-purple-500/30">
@@ -193,8 +185,9 @@ function ZodiacContent() {
           <CardHeader>
             <CardTitle className="text-white">相性の良い星座</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
+          <CardContent className="space-y-3">
+            <p className="text-purple-300 text-xs text-center">「{result.sign}」と特に波長が合いやすい星座です</p>
+            <div className="flex flex-wrap gap-2 justify-center">
               {result.compatibility.map((c) => (
                 <Badge key={c} className="bg-pink-900/50 text-pink-200 text-sm">{c}</Badge>
               ))}
@@ -202,157 +195,90 @@ function ZodiacContent() {
           </CardContent>
         </Card>
 
-        <Separator className="bg-purple-500/30" />
+        {/* 対人傾向 */}
+        <Card className="bg-white/10 border-purple-500/30">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <span className="text-xl">💬</span>対人傾向・コミュニケーション
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-purple-100 leading-relaxed">{result.interpersonal}</p>
+          </CardContent>
+        </Card>
 
-        {/* キャリア適性分析（プレミアム - ぼかし） */}
-        <div className="relative">
-          <Card className="bg-gradient-to-br from-amber-900/30 to-orange-900/30 border-amber-500/30">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <span className="text-xl">💼</span>キャリア適性分析
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="relative">
-                <div className="blur-[6px] select-none pointer-events-none" aria-hidden="true">
-                  <p className="text-purple-100 leading-relaxed">{result.careerAnalysis}</p>
-                  <div className="mt-4">
-                    <h4 className="text-amber-400 font-semibold mb-2">向いている職種</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {result.suitableCareers.map((c) => (
-                        <Badge key={c} className="bg-amber-900/50 text-amber-200">{c}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-transparent via-purple-950/60 to-purple-950/80 rounded-lg">
-                  <div className="text-center space-y-3 px-4">
-                    <div className="text-4xl">🔒</div>
-                    <p className="text-white font-semibold text-lg">プレミアム限定コンテンツ</p>
-                    <p className="text-purple-200 text-sm">
-                      あなたの星座に基づいた<br />
-                      詳細なキャリア適性分析を閲覧できます
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* ─── 詳細鑑定 ─── */}
+        <div className="flex items-center gap-3 pt-2">
+          <div className="flex-1 h-px bg-purple-500/30" />
+          <Badge className="bg-purple-900/50 text-purple-200 text-sm px-4 py-1">🔮 詳細鑑定レポート</Badge>
+          <div className="flex-1 h-px bg-purple-500/30" />
         </div>
 
-        {/* リーダーシップ & 隠れた才能（プレミアム - ぼかし） */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="relative">
-            <Card className="bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border-blue-500/30 h-full">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2 text-base">
-                  <span>👑</span>リーダーシップ
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="relative">
-                  <div className="blur-[6px] select-none pointer-events-none" aria-hidden="true">
-                    <p className="text-purple-100 text-sm leading-relaxed">{result.leadershipStyle}</p>
-                  </div>
-                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-transparent via-purple-950/60 to-purple-950/80 rounded-lg">
-                    <div className="text-center space-y-1">
-                      <div className="text-2xl">🔒</div>
-                      <p className="text-white text-sm font-semibold">プレミアムで解放</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          <div className="relative">
-            <Card className="bg-gradient-to-br from-emerald-900/30 to-teal-900/30 border-emerald-500/30 h-full">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2 text-base">
-                  <span>✨</span>隠れた才能
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="relative">
-                  <div className="blur-[6px] select-none pointer-events-none" aria-hidden="true">
-                    <p className="text-purple-100 text-sm leading-relaxed">{result.hiddenTalent}</p>
-                  </div>
-                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-transparent via-purple-950/60 to-purple-950/80 rounded-lg">
-                    <div className="text-center space-y-1">
-                      <div className="text-2xl">🔒</div>
-                      <p className="text-white text-sm font-semibold">プレミアムで解放</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        <Card className="bg-gradient-to-br from-rose-900/30 to-pink-900/30 border-rose-500/30">
+          <CardHeader><CardTitle className="text-white flex items-center gap-2"><span className="text-xl">💕</span>恋愛傾向</CardTitle></CardHeader>
+          <CardContent><PremiumText text={result.loveAnalysis} /></CardContent>
+        </Card>
 
-        {/* 課金CTA */}
-        <Card className="bg-gradient-to-r from-purple-900/60 to-pink-900/60 border-purple-400/50 relative overflow-hidden">
-          <div className="absolute top-0 right-0 bg-pink-600 text-white text-xs px-3 py-1 rounded-bl-lg">おすすめ</div>
-          <CardContent className="pt-8 pb-8 text-center space-y-4">
-            <div className="text-4xl">🔮</div>
-            <h3 className="text-white text-xl font-bold">
-              もっと深く自分を知りませんか？
-            </h3>
-            <p className="text-purple-200 text-sm leading-relaxed max-w-md mx-auto">
-              プレミアムプランでは、あなたの星座とデカンに基づいた
-              <span className="text-amber-300 font-semibold">キャリア適性分析</span>、
-              <span className="text-amber-300 font-semibold">リーダーシップスタイル</span>、
-              <span className="text-amber-300 font-semibold">隠れた才能</span>
-              など、人生に役立つ深い鑑定が見放題になります。
-            </p>
+        <Card className="bg-white/10 border-purple-500/30">
+          <CardHeader><CardTitle className="text-white flex items-center gap-2"><span className="text-xl">💑</span>相性の良いタイプ</CardTitle></CardHeader>
+          <CardContent><PremiumText text={result.compatibleType} /></CardContent>
+        </Card>
 
-            <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
-              {/* サブスク */}
-              <div className="bg-white/10 rounded-xl p-4 text-center">
-                <p className="text-purple-300 text-xs mb-1">サブスク（全占術見放題）</p>
-                <div className="text-white">
-                  <span className="text-2xl font-bold">¥980</span>
-                  <span className="text-purple-300 text-sm">/月</span>
-                </div>
-                <Link href="/pricing">
-                  <Button className="mt-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white w-full">
-                    プレミアムプランを見る
-                  </Button>
-                </Link>
-              </div>
-
-              <span className="text-purple-400 text-sm">or</span>
-
-              {/* 買い切り */}
-              <div className="bg-white/10 rounded-xl p-4 text-center">
-                <p className="text-purple-300 text-xs mb-1">星座占い 深掘り鑑定</p>
-                <div className="text-white">
-                  <span className="text-2xl font-bold">¥400</span>
-                  <span className="text-purple-300 text-sm">（買い切り）</span>
-                </div>
-                <Link href="/pricing">
-                  <Button variant="outline" className="mt-2 border-purple-500/50 text-purple-200 hover:bg-purple-900/50 w-full">
-                    個別に購入する
-                  </Button>
-                </Link>
+        <Card className="bg-gradient-to-br from-amber-900/30 to-orange-900/30 border-amber-500/30">
+          <CardHeader><CardTitle className="text-white flex items-center gap-2"><span className="text-xl">💼</span>キャリア適性分析</CardTitle></CardHeader>
+          <CardContent>
+            <PremiumText text={result.careerAnalysis} />
+            <div className="mt-4">
+              <h4 className="text-amber-400 font-semibold mb-2">向いている職種</h4>
+              <div className="flex flex-wrap gap-2">
+                {result.suitableCareers.map((c) => (
+                  <Badge key={c} className="bg-amber-900/50 text-amber-200">{c}</Badge>
+                ))}
               </div>
             </div>
-
-            <p className="text-purple-400 text-xs">
-              サブスクなら四柱推命・数秘術・動物占い・AI総合鑑定も全て含まれます
-            </p>
           </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-emerald-900/30 to-teal-900/30 border-emerald-500/30">
+          <CardHeader><CardTitle className="text-white flex items-center gap-2"><span className="text-xl">✨</span>隠れた才能</CardTitle></CardHeader>
+          <CardContent><PremiumText text={result.hiddenTalent} /></CardContent>
+        </Card>
+
+        <Card className="bg-white/10 border-purple-500/30">
+          <CardHeader><CardTitle className="text-white flex items-center gap-2"><span className="text-xl">💰</span>金運傾向</CardTitle></CardHeader>
+          <CardContent><PremiumText text={result.moneyFortune} /></CardContent>
+        </Card>
+
+        <Card className="bg-white/10 border-purple-500/30">
+          <CardHeader><CardTitle className="text-white flex items-center gap-2"><span className="text-xl">🧭</span>人生の方向性</CardTitle></CardHeader>
+          <CardContent><PremiumText text={result.lifeDirection} /></CardContent>
+        </Card>
+
+        <Card className="bg-white/10 border-purple-500/30">
+          <CardHeader><CardTitle className="text-white flex items-center gap-2"><span className="text-xl">🔄</span>今年の転機</CardTitle></CardHeader>
+          <CardContent><PremiumText text={result.yearlyTurningPoint} /></CardContent>
+        </Card>
+
+        <Card className="bg-white/10 border-purple-500/30">
+          <CardHeader><CardTitle className="text-white flex items-center gap-2"><span className="text-xl">📈</span>今後の伸ばし方</CardTitle></CardHeader>
+          <CardContent><PremiumText text={result.growthAdvice} /></CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border-blue-500/30">
+          <CardHeader><CardTitle className="text-white flex items-center gap-2"><span className="text-xl">👑</span>人を惹きつける強み</CardTitle></CardHeader>
+          <CardContent><PremiumText text={result.attractionStrength} /></CardContent>
         </Card>
 
         {/* 他の占術リンク */}
         <div className="flex gap-3 justify-center flex-wrap">
           <Link href={`/result?year=${year}&month=${month}&day=${day}`}>
-            <Button className="bg-purple-600 hover:bg-purple-500 text-white">
-              四柱推命の結果を見る
-            </Button>
+            <Button className="bg-purple-600 hover:bg-purple-500 text-white">四柱推命 &rarr;</Button>
           </Link>
-          <Link href={`/ai-reading?year=${year}&month=${month}&day=${day}`}>
-            <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white">
-              AI総合鑑定を見る &rarr;
-            </Button>
+          <Link href={`/numerology?year=${year}&month=${month}&day=${day}`}>
+            <Button className="bg-purple-600 hover:bg-purple-500 text-white">数秘術 &rarr;</Button>
+          </Link>
+          <Link href={`/animal?year=${year}&month=${month}&day=${day}`}>
+            <Button className="bg-purple-600 hover:bg-purple-500 text-white">動物占い &rarr;</Button>
           </Link>
         </div>
       </main>

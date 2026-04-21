@@ -1,6 +1,7 @@
 export { calculateMeishiki, getTsuhensei } from './calculator';
 export type { Meishiki } from './calculator';
 export { getPersonality, PERSONALITY_MAP } from './personality';
+export type { PersonalityProfile } from './personality';
 export {
   STEMS, BRANCHES, STEM_READINGS, BRANCH_READINGS,
   STEM_ELEMENTS, BRANCH_ELEMENTS, STEM_YINYANG,
@@ -9,3 +10,14 @@ export {
 export type { Stem, Branch, Element, Tsuhensei } from './constants';
 export { calculateDailyFortune, calculateWeeklyFortune } from './daily-fortune';
 export type { DailyFortune } from './daily-fortune';
+export { calculateDaiun } from './daiun';
+export type { Gender, DaiunResult, DaiunPeriod } from './daiun';
+export { getDaiunInsight } from './daiun-insight';
+export type { DaiunInsight } from './daiun-insight';
+export {
+  buildDetailedChart, getJuuniun, getKuubou, getYoujin, getTenotsu,
+  getNayin, getGetsurei, getHiddenTsuhensei,
+  HIDDEN_STEMS, JUUNIUN_NAMES,
+  TSUHENSEI_MEANINGS, JUUNIUN_MEANINGS, GETSUREI_DESCRIPTIONS,
+} from './detailed-chart';
+export type { DetailedChart, PillarDetail, Juuniun, Getsurei } from './detailed-chart';

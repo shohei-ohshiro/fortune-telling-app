@@ -32,8 +32,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (code) {
         await supabase.auth.exchangeCodeForSession(code);
-        // URL からコードパラメータを除去
-        window.history.replaceState({}, "", window.location.pathname);
+        // code と state だけ除去し、他のパラメータ（year/month/day 等）は保持する
+        const cleanParams = new URLSearchParams(window.location.search);
+        cleanParams.delete("code");
+        cleanParams.delete("state");
+        const remaining = cleanParams.toString();
+        window.history.replaceState(
+          {},
+          "",
+          remaining ? `${window.location.pathname}?${remaining}` : window.location.pathname,
+        );
       }
     };
 

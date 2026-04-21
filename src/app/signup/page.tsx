@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,12 +11,16 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/lib/supabase";
 
-export default function SignupPage() {
+function SignupContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const afterSignupPath = redirectTo || "/dashboard";
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,14 +38,14 @@ export default function SignupPage() {
       return;
     }
 
-    router.push("/dashboard");
+    router.push(afterSignupPath);
   };
 
   const handleGoogleSignup = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${window.location.origin}${afterSignupPath}`,
       },
     });
     if (error) {
@@ -120,7 +125,7 @@ export default function SignupPage() {
           </form>
 
           <div className="mt-4 text-center">
-            <Link href="/login" className="text-purple-300 hover:text-white text-sm">
+            <Link href={`/login${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`} className="text-purple-300 hover:text-white text-sm">
               すでにアカウントをお持ちの方はこちら
             </Link>
           </div>
@@ -132,5 +137,13 @@ export default function SignupPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950 flex items-center justify-center"><p className="text-purple-300">読み込み中...</p></div>}>
+      <SignupContent />
+    </Suspense>
   );
 }
