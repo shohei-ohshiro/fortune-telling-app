@@ -279,6 +279,7 @@ function ResultContent() {
           month={month}
           day={day}
           hour={hour}
+          gender={genderParam ?? undefined}
           meishiki={meishiki}
           detailed={detailed}
           daiun={daiun}
