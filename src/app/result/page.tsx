@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Header } from "@/components/Header";
 import { PremiumText } from "@/components/PremiumText";
+import { TraditionalMeishikiChart } from "@/components/TraditionalMeishikiChart";
+import { TraditionalChartGuide } from "@/components/TraditionalChartGuide";
 import {
   calculateMeishiki,
   calculateDaiun,
@@ -256,6 +258,32 @@ function ResultContent() {
         <p className="text-center text-purple-400 text-sm px-4">
           生年月日から命式を算出し、持って生まれた気質・才能・行動パターンを五行の観点で読み解きます。
         </p>
+
+        {/* ─── 伝統的な紙の鑑定書スタイル ─── */}
+        <TraditionalMeishikiChart
+          year={year}
+          month={month}
+          day={day}
+          hour={hour}
+          minute={minute}
+          gender={genderParam ?? undefined}
+          meishiki={meishiki}
+          detailed={detailed}
+          daiun={daiun}
+          approxAge={approxAge}
+        />
+
+        {/* 画像の各要素を解説する視覚ガイド */}
+        <TraditionalChartGuide
+          year={year}
+          month={month}
+          day={day}
+          hour={hour}
+          meishiki={meishiki}
+          detailed={detailed}
+          daiun={daiun}
+          approxAge={approxAge}
+        />
 
         {/* 日主タイプ */}
         <Card className="bg-white/10 border-purple-500/30">

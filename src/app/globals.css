@@ -128,3 +128,11 @@
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  .writing-vertical {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    letter-spacing: 0.05em;
+  }
+}

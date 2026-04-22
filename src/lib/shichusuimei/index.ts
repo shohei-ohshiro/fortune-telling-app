@@ -21,3 +21,8 @@ export {
   TSUHENSEI_MEANINGS, JUUNIUN_MEANINGS, GETSUREI_DESCRIPTIONS,
 } from './detailed-chart';
 export type { DetailedChart, PillarDetail, Juuniun, Getsurei } from './detailed-chart';
+export {
+  toJapaneseEra, getKanshiNumber, getMeigu, getTentoku, getGettoku,
+  getRyuunen, buildRyuunenPillar, toRadarPoints, ELEMENT_STROKE,
+} from './traditional';
+export type { JapaneseEra, Meigu, RyuunenPillar, ElementAngle } from './traditional';
