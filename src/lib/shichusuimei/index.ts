@@ -29,5 +29,5 @@ export type { JapaneseEra, Meigu, RyuunenPillar, ElementAngle } from './traditio
 export { analyzeCompatibility } from './compatibility';
 export type {
   CompatibilityResult, CompatibilityBond, BondKind, PillarPos,
-  ElementCompareRow, DayStarRelation,
+  ElementCompareRow, DayStarRelation, CompatibilityDeepDive,
 } from './compatibility';

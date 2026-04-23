@@ -1,5 +1,5 @@
 import {
-  ELEMENT_CYCLE,
+  ELEMENT_CYCLE, STEM_YINYANG,
   type Stem, type Branch, type Element,
 } from './constants';
 import { getTsuhensei, type Meishiki } from './calculator';
@@ -52,6 +52,21 @@ export interface DayStarRelation {
   description: string;
 }
 
+export interface CompatibilityDeepDive {
+  /** 日常シーンでの相性（例を含む具体的な描写） */
+  daily: string;
+  /** 衝突時の傾向と対処例 */
+  conflict: string;
+  /** 価値観・ライフスタイルの重なりと違い */
+  values: string;
+  /** コミュニケーションスタイル */
+  communication: string;
+  /** 長期的な展望（3年・5年スパンでの変化） */
+  longTerm: string;
+  /** 合計字数（参考値） */
+  totalChars: number;
+}
+
 export interface CompatibilityResult {
   bonds: CompatibilityBond[];
   bondScore: number;      // 吉縁による加点
@@ -64,6 +79,7 @@ export interface CompatibilityResult {
   cautionPoints: string[];  // 気をつける面
   differentPoints: string[]; // 異なる面
   summary: string;           // 総評
+  deepDive: CompatibilityDeepDive; // 詳細な深掘り分析（合計800字前後）
 }
 
 /* ----------------------------------------------------------
@@ -410,6 +426,183 @@ function computeDayStar(self: Meishiki, other: Meishiki): DayStarRelation {
 }
 
 /* ----------------------------------------------------------
+ * ── 深掘り分析（各観点の詳細コメント） ──────────────────
+ * ---------------------------------------------------------- */
+
+/** 五行ごとのライフスタイル特徴 */
+const ELEMENT_LIFESTYLE: Record<Element, { trait: string; weekend: string; valueFocus: string }> = {
+  '木': { trait: '成長・開拓志向', weekend: '新しいカフェやイベントを開拓して刺激を受けたい', valueFocus: '挑戦と広がり' },
+  '火': { trait: '感情表現豊かで社交的', weekend: '友人と集まってワイワイ盛り上がりたい', valueFocus: '熱量と繋がり' },
+  '土': { trait: '安定・家庭志向', weekend: '家でゆっくり過ごしたり身近な人とゆるく会いたい', valueFocus: '安心と継続' },
+  '金': { trait: '規律と完成度を重視', weekend: '部屋を整え、やるべきタスクを片付けてスッキリしたい', valueFocus: '整理と本質' },
+  '水': { trait: '知的で内省的', weekend: '静かな場所で本を読んだり深い会話をしたい', valueFocus: '理解と柔軟性' },
+};
+
+/** 日干通変から導く日常シーン（相手→自分 の通変星をキーに） */
+const DAILY_BY_TSUHENSEI: Record<string, (selfStem: Stem, otherStem: Stem) => string> = {
+  '印綬': (s, o) =>
+    `あなたの日主「${s}」は相手の日主「${o}」から気を受け取る『印綬』の関係。相手はあなたを精神的に支える側になりやすく、例えば仕事で失敗して落ち込んで帰宅した日、相手は責めるような言葉を使わず「先にご飯にしよう」と日常に引き戻してくれます。素直に頼ってよいパートナーです。`,
+  '偏印': (s, o) =>
+    `相手の日主「${o}」があなたの日主「${s}」を生む『偏印』の関係。相手は見守る側ですが、感情ベッタリではなくドライな気遣い。例えば進路に悩むあなたに対し、相手は正解を押し付けず「自分で決めなよ、何でも応援する」と一歩引いて寄り添います。`,
+  '食神': (s, o) =>
+    `あなたの日主「${s}」が相手の日主「${o}」を生む『食神』の関係で、あなたが与える側。例えば相手が新しい趣味を始めようとすると、あなたが自然と資料を集めて手渡す役割に。与えすぎて自分のエネルギーが枯れないよう、週1日は自分だけの時間を確保して。`,
+  '傷官': (s, o) =>
+    `あなたの日主「${s}」が相手の日主「${o}」を生みつつ、感性が鋭く出る『傷官』の関係。例えば相手のプレゼン資料に「そこは違う」と切り込むシーンが起きがちで、相手は最初驚きつつ後で「確かに」と納得。言葉選びを少し柔らかくすると信頼が深まります。`,
+  '正官': (s, o) =>
+    `相手の日主「${o}」があなたを律する『正官』の関係。例えばあなたがだらけそうな週末、相手の「そろそろ片付けようか」という一言で背筋が伸びる場面が出ます。厳しさを「うるさい」ではなく「整えてくれる人」と受け取れるかが長続きの鍵。`,
+  '偏官': (s, o) =>
+    `相手の日主「${o}」があなたを試す『偏官』の関係。例えば何気ない議論でも本質を突く質問が返ってきて、緊張感のあるやり取りが増えがち。厳しさを成長の糧と捉えられる人には最高の伴走者になり、そうでない人にはやや疲れる相手に。`,
+  '正財': (s, o) =>
+    `あなたの日主「${s}」が相手を統べる『正財』の関係で、関係をリードする立場。例えば旅行の計画やお金の使い方であなたが主導し、相手が乗ってくるパターンが自然。相手のペースを尊重する余白を残すと、主導権争いになりません。`,
+  '偏財': (s, o) =>
+    `あなたが『偏財』の位置で相手を動かす関係。例えば行きたい店を見つけたらすぐ誘い、相手は受けて楽しむ形に。あなたの行動力が相手を外の世界に連れ出す反面、踏み込みすぎると疲れさせるので時々「どうしたい？」と聞く意識を。`,
+  '比肩': (s, o) =>
+    `日主が同じ五行の『比肩』の関係で、感覚が近く「言わなくてもわかる」瞬間が多い配置。例えば外食で同じメニューを選んだり、映画の好みが重なったり。ただし譲り合いは苦手で、旅行の日程調整のように両者が主張する場面ではぶつかりやすい面も。`,
+  '劫財': (s, o) =>
+    `日主が五行は同じで陰陽が違う『劫財』の関係で、似ているけれど鏡像のような微妙な差があります。例えば価値観は共通でも仕事のやり方は違い、協力すれば最強、対立すると互いの欠点を指摘し合う泥沼に。距離感の設計が最重要。`,
+};
+
+/** 日常シーンの詳細コメント */
+function buildDailyNarrative(
+  self: Meishiki, other: Meishiki, dayStar: DayStarRelation,
+): string {
+  const fn = DAILY_BY_TSUHENSEI[dayStar.fromOtherToSelf];
+  return fn ? fn(self.dayStem, other.dayStem) : '';
+}
+
+/** 衝突時の傾向と対処 */
+function buildConflictNarrative(bonds: CompatibilityBond[]): string {
+  const byKind = (k: BondKind) => bonds.filter((b) => b.kind === k);
+  const dayChong = bonds.find((b) => b.kind === '沖' && b.selfPos === '日' && b.otherPos === '日');
+  const anyChong = byKind('沖');
+  const anyKei = byKind('刑');
+  const anyGai = byKind('害');
+  const anyHa = byKind('破');
+
+  if (dayChong) {
+    return `日柱同士が『${dayChong.label}』でぶつかる配置。価値観の核心が正反対に寄りやすく、例えば「お金を貯めて将来に備えるか／今やりたいことに使うか」「都会で刺激を受けるか／郊外で落ち着くか」といった人生の大きな分岐で真逆の意見を主張し合う場面が出ます。熱が高いまま議論しない『24時間ルール』を設け、翌日に冷静な頭で再度話すと建設的になります。`;
+  }
+  if (anyChong.length > 0) {
+    const b = anyChong[0];
+    const pillarPhrase = b.selfPos === b.otherPos
+      ? `${b.selfPos}柱同士`
+      : `あなたの${b.selfPos}柱と相手の${b.otherPos}柱`;
+    return `${pillarPhrase}に『${b.label}』があり、意見がぶつかる瞬間があります。例えば家族イベントの過ごし方や予定変更の場面で火花が散りやすい配置。ぶつかった直後に決着をつけようとせず、一度その場を離れて散歩するなど物理的距離を取るのが有効。話し合いは翌朝が鉄則です。`;
+  }
+  if (anyKei.length > 0) {
+    return `『${anyKei[0].label}』を含む刑の関係が${anyKei.length}箇所あり、正面衝突しない代わりに鬱積しやすい配置。例えばパートナーの細かな癖（食事中のスマホ、洗い物の残し方）に気づいていても言わずに我慢し、ある日突然「前から言いたかった」と爆発するパターンに注意。週1回5分でいいので「最近モヤッとしたこと」を共有する時間を作るとガス抜きになります。`;
+  }
+  if (anyGai.length > 0) {
+    return `『${anyGai[0].label}』などの害の関係があり、大きな喧嘩は起きにくい反面、小さな行き違いで信頼が削れます。例えば「明日ランチ行く？」の返信が遅れただけで「本当は行きたくないのでは」と裏読みしがち。連絡はこまめに、かつ一言多めに「了解！楽しみ」と添えるだけで関係が安定します。`;
+  }
+  if (anyHa.length > 0) {
+    return `『${anyHa[0].label}』の破があり、現状維持を揺さぶる縁。例えば転職や引越しなど一方が変化を起こすと、もう一方にも連鎖して変化が及びがち。刺激はあるものの、どちらかが落ち着きたい時期には負担に感じることも。節目ごとに二人で方向性を確認する時間を。`;
+  }
+  return `沖・刑・害・破などの明確な衝突因子は検出されませんでした。大きな喧嘩は稀な穏やかな配置ですが、静かな関係ほど不満が言語化されにくいので、例えば月末に「今月ちょっと気になったこと」を軽く共有する習慣を作ると関係が停滞しません。`;
+}
+
+/** 価値観・ライフスタイルの重なりと違い */
+function buildValuesNarrative(
+  elementCompare: ElementCompareRow[],
+): string {
+  // 最大量の五行を双方から取得
+  const selfTop = [...elementCompare].sort((a, b) => b.self - a.self)[0];
+  const otherTop = [...elementCompare].sort((a, b) => b.other - a.other)[0];
+  const selfTrait = ELEMENT_LIFESTYLE[selfTop.element];
+  const otherTrait = ELEMENT_LIFESTYLE[otherTop.element];
+  const missingForSelf = elementCompare.find((r) => r.self === 0 && r.other > 0);
+  const missingForOther = elementCompare.find((r) => r.other === 0 && r.self > 0);
+
+  if (selfTop.element === otherTop.element) {
+    return `あなたも相手も五行の主役が「${selfTop.element}」（${selfTrait.trait}）で、${selfTrait.valueFocus}という価値観のコアが重なっています。例えば休日には二人とも${selfTrait.weekend}傾向が強く、行動選択に迷いにくい配置。ただし似た者同士のため、第三者の視点（家族や友人）を意識的に取り入れないと、二人の世界に閉じこもって視野が狭くなりやすいので注意。${missingForSelf ? `また、あなたに不足する『${missingForSelf.element}』の気を相手が${missingForSelf.other}持っており、そこが補完ポイントです。` : ''}`;
+  }
+
+  let txt = `あなたは「${selfTop.element}」（${selfTop.self}）が最多で${selfTrait.trait}タイプ、相手は「${otherTop.element}」（${otherTop.other}）が最多で${otherTrait.trait}タイプ。例えば休日の過ごし方で、あなたは${selfTrait.weekend}一方、相手は${otherTrait.weekend}ことを求めます。どちらが正しいではなく「役割分担」と捉え、旅行なら前半はあなた主導のアクティブ日・後半は相手主導のリラックス日と分けるとお互い満たされます。`;
+
+  if (missingForSelf) {
+    txt += `特にあなたに欠けている『${missingForSelf.element}』を相手が${missingForSelf.other}持っており、これがあなたにとっての大きな癒しの源になります。`;
+  } else if (missingForOther) {
+    txt += `特に相手に無い『${missingForOther.element}』をあなたが${missingForOther.self}持ち、相手から頼られるポイントに。`;
+  }
+  return txt;
+}
+
+/** コミュニケーションスタイル */
+function buildCommunicationNarrative(
+  self: Meishiki, other: Meishiki, dayStar: DayStarRelation,
+): string {
+  const selfYY = STEM_YINYANG[self.dayStem];
+  const otherYY = STEM_YINYANG[other.dayStem];
+  const bothYang = selfYY === '陽' && otherYY === '陽';
+  const bothYin = selfYY === '陰' && otherYY === '陰';
+
+  let base = '';
+  if (bothYang) {
+    base = `二人とも日主が陽干（あなた「${self.dayStem}」・相手「${other.dayStem}」）で、オープンに言いたいことを出すタイプ同士。例えば意見が割れても率直にぶつけるので誤解は少ない反面、音量と語気が上がりすぎると単なる喧嘩に見えがち。「相手の話が終わってから自分の番」というルールを一つ入れると安定します。`;
+  } else if (bothYin) {
+    base = `二人とも日主が陰干（あなた「${self.dayStem}」・相手「${other.dayStem}」）で、察する文化が共通。例えば「これが嫌」と直接言わず態度で示すため、読み取りは得意。ただこじれた時に言語化されないまま冷戦になりやすい配置。1週間モヤモヤが続いたら「話す時間」を取る約束があると安全です。`;
+  } else {
+    const yangSide = selfYY === '陽' ? 'あなた' : '相手';
+    const yinSide = selfYY === '陽' ? '相手' : 'あなた';
+    base = `${yangSide}が陽干でストレート、${yinSide}が陰干で察するタイプ。例えば「疲れた」の一言でも、${yangSide}は言葉通り受け取り、${yinSide}は「何があったの？」と背景を探る。片方が言語化・片方が察するという役割分担がハマりやすい組み合わせです。`;
+  }
+
+  // 通変のニュアンスで一文追加
+  const t = dayStar.fromOtherToSelf;
+  if (t === '印綬' || t === '偏印') base += `特に相手があなたの話を受け止める側でもあり、愚痴の吐き出し先として機能します。`;
+  else if (t === '食神' || t === '傷官') base += `あなたが相手に思い切り話し、相手はそれを楽しむ関係になりやすいです。`;
+  else if (t === '正官' || t === '偏官') base += `相手の言葉があなたに効くので、真面目な議論ほど価値が生まれます。`;
+  else if (t === '正財' || t === '偏財') base += `あなたが話題を運び、相手がリアクションする形で会話が回ります。`;
+  else if (t === '比肩' || t === '劫財') base += `テンポが揃うのでノリの良い会話が続きますが、同じ話題を延々回す癖に注意。`;
+  return base;
+}
+
+/** 長期的な展望 */
+function buildLongTermNarrative(
+  overallScore: number,
+  karmaStrength: CompatibilityResult['karmaStrength'],
+): string {
+  let band = '';
+  if (overallScore >= 80) {
+    band = `スコア${overallScore}点は極上の配置で、例えば10年というスパンで見ても最初の熱量がただ薄れるのではなく、友人・家族・仕事仲間など別の形に変換されて続いていくタイプです。`;
+  } else if (overallScore >= 65) {
+    band = `スコア${overallScore}点で良好。例えば3年目あたりから「最初のときめき」が「生活の安定」という別の果実に変わり、お互いのいない日常が想像しづらくなります。`;
+  } else if (overallScore >= 50) {
+    band = `スコア${overallScore}点で、育てる相性。例えば最初の1〜2年は磨き合いの時期で、3年目あたりから急に呼吸が合う典型的な「時間がかかるけど深まる」配置です。`;
+  } else if (overallScore >= 35) {
+    band = `スコア${overallScore}点で、距離感が鍵の配置。例えば毎日一緒に過ごすより、週末だけ濃く会う、別々の趣味を持つなど「会う時間を濃くする」設計にするほど長続きします。`;
+  } else {
+    band = `スコア${overallScore}点で刺激重視の配置。例えば短期間で濃く影響を与え合い、人生の転機を作る恋人・友人という役割を担いやすい縁です。`;
+  }
+
+  let karma = '';
+  if (karmaStrength === '非常に強い' || karmaStrength === '強い') {
+    karma = `因縁の強さは『${karmaStrength}』で、切ろうとしても何度も交差する縁。たとえ一度離れても、数年後に仕事や共通の知人を通じて再び繋がる可能性が高いタイプです。この関係から逃げるより、腰を据えて向き合うほうが人生の宿題を終えられます。`;
+  } else {
+    karma = `因縁の強さは『${karmaStrength}』で、運命的な引力はそこまで強くありません。だからこそ意識的に時間を共有し、小さなイベント（週末の食事、記念日の共有）を積み重ねることで関係が育っていきます。`;
+  }
+  return band + karma;
+}
+
+/** 全観点をまとめた深掘り分析 */
+function buildDeepDive(
+  self: Meishiki, other: Meishiki,
+  bonds: CompatibilityBond[],
+  elementCompare: ElementCompareRow[],
+  dayStar: DayStarRelation,
+  overallScore: number,
+  karmaStrength: CompatibilityResult['karmaStrength'],
+): CompatibilityDeepDive {
+  const daily = buildDailyNarrative(self, other, dayStar);
+  const conflict = buildConflictNarrative(bonds);
+  const values = buildValuesNarrative(elementCompare);
+  const communication = buildCommunicationNarrative(self, other, dayStar);
+  const longTerm = buildLongTermNarrative(overallScore, karmaStrength);
+  const totalChars = daily.length + conflict.length + values.length + communication.length + longTerm.length;
+  return { daily, conflict, values, communication, longTerm, totalChars };
+}
+
+/* ----------------------------------------------------------
  * ── メイン関数 ─────────────────────────────────────────────
  * ---------------------------------------------------------- */
 export function analyzeCompatibility(
@@ -549,6 +742,10 @@ export function analyzeCompatibility(
         ? '刺激的な縁が多く、お互いの課題を浮き彫りにする関係。成長の機会として向き合うと実りがあります。'
         : '吉と凶が拮抗する複雑な縁。丁寧な対話で育てていくことで真価を発揮します。');
 
+  const deepDive = buildDeepDive(
+    self, other, bonds, elementCompare, dayStarRelation, overallScore, karmaStrength,
+  );
+
   return {
     bonds,
     bondScore: Math.round(bondScore * 10) / 10,
@@ -561,6 +758,7 @@ export function analyzeCompatibility(
     cautionPoints,
     differentPoints,
     summary,
+    deepDive,
   };
 }
 

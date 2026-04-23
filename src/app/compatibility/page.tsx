@@ -400,6 +400,46 @@ function CompatibilityInner() {
               </div>
             </div>
 
+            {/* 深掘り鑑定（800字前後の詳細分析） */}
+            <Card className="bg-gradient-to-br from-indigo-900/40 to-purple-900/40 border-indigo-400/40">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2 text-lg">
+                  <span>📖</span>深掘り鑑定（{computed.result.deepDive.totalChars}字）
+                </CardTitle>
+                <p className="text-purple-300 text-xs leading-relaxed">
+                  日常・衝突時・価値観・コミュニケーション・長期展望の5観点から、具体的なシーンを例に二人の相性を詳細に鑑定します。
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {([
+                  { icon: "🌤️", title: "日常シーンでの相性", color: "sky", body: computed.result.deepDive.daily },
+                  { icon: "⚔️", title: "衝突したときの傾向と対処", color: "rose", body: computed.result.deepDive.conflict },
+                  { icon: "🏡", title: "価値観・ライフスタイルの重なりと違い", color: "emerald", body: computed.result.deepDive.values },
+                  { icon: "💬", title: "コミュニケーションスタイル", color: "amber", body: computed.result.deepDive.communication },
+                  { icon: "🌱", title: "長期的な展望（3年・5年・10年）", color: "violet", body: computed.result.deepDive.longTerm },
+                ] as const).map((sec) => {
+                  const colorMap: Record<string, { bar: string; title: string; box: string }> = {
+                    sky:     { bar: "border-sky-400/70",     title: "text-sky-200",     box: "bg-sky-900/20" },
+                    rose:    { bar: "border-rose-400/70",    title: "text-rose-200",    box: "bg-rose-900/20" },
+                    emerald: { bar: "border-emerald-400/70", title: "text-emerald-200", box: "bg-emerald-900/20" },
+                    amber:   { bar: "border-amber-400/70",   title: "text-amber-200",   box: "bg-amber-900/20" },
+                    violet:  { bar: "border-violet-400/70",  title: "text-violet-200",  box: "bg-violet-900/20" },
+                  };
+                  const c = colorMap[sec.color];
+                  return (
+                    <div key={sec.title} className={`${c.box} rounded-lg p-4 border-l-4 ${c.bar}`}>
+                      <div className={`${c.title} font-semibold text-sm mb-2 flex items-center gap-1.5`}>
+                        <span className="text-base">{sec.icon}</span>{sec.title}
+                      </div>
+                      <p className="text-purple-50 text-sm leading-relaxed whitespace-pre-line">
+                        {sec.body}
+                      </p>
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+
             {/* 因縁の一覧 */}
             <Card className="bg-white/5 border-purple-500/30">
               <CardHeader>
