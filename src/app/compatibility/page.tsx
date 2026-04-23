@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/Header";
+import { TraditionalGogyoWheel } from "@/components/TraditionalGogyoWheel";
 import {
   calculateMeishiki,
   analyzeCompatibility,
@@ -16,6 +17,7 @@ import {
   ELEMENT_COLORS,
   STEM_READINGS,
   BRANCH_READINGS,
+  calculateDaiun,
   type Meishiki,
   type Element,
   type CompatibilityBond,
@@ -257,7 +259,27 @@ function CompatibilityInner() {
     const selfMei = toMei(self);
     const otherMei = toMei(other);
     const result = analyzeCompatibility(selfMei, otherMei);
-    return { selfMei, otherMei, result };
+
+    // 大運の天干（性別がわかっている場合のみ + マーカー用）
+    const currentDaiunStem = (p: PersonInput, mei: Meishiki) => {
+      if (p.gender !== "男" && p.gender !== "女") return undefined;
+      try {
+        const y = Number(p.year), m = Number(p.month), d = Number(p.day);
+        const h = p.hour !== "" ? Number(p.hour) : 12;
+        const min = p.minute !== "" ? Number(p.minute) : 0;
+        const daiun = calculateDaiun(y, m, d, h, min, p.gender, mei.yearStem, mei.monthStem, mei.monthBranch);
+        const today = new Date();
+        const hasBirthdayPassed = today >= new Date(today.getFullYear(), m - 1, d);
+        const approxAge = today.getFullYear() - y - (hasBirthdayPassed ? 0 : 1);
+        const current = daiun.periods.find((p) => p.startAge <= approxAge && approxAge <= p.endAge);
+        return current?.stem;
+      } catch {
+        return undefined;
+      }
+    };
+    const selfDaiunStem = currentDaiunStem(self, selfMei);
+    const otherDaiunStem = currentDaiunStem(other, otherMei);
+    return { selfMei, otherMei, result, selfDaiunStem, otherDaiunStem };
   }, [self, other]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -379,11 +401,39 @@ function CompatibilityInner() {
               </CardContent>
             </Card>
 
-            {/* 左右の命式比較 */}
+            {/* 左右の五行円盤比較（伝統鑑定書スタイル） */}
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-white text-base font-semibold">📜 命式比較</span>
+                <span className="text-white text-base font-semibold">🧭 五行円盤比較</span>
                 <span className="text-purple-400 text-xs">左があなた・右が相手</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <div className="text-blue-200 text-xs font-semibold mb-1 px-1">👤 あなた（{dateLabel(self, self.gender)}）</div>
+                  <TraditionalGogyoWheel
+                    meishiki={computed.selfMei}
+                    daiunStem={computed.selfDaiunStem}
+                    compact
+                  />
+                </div>
+                <div>
+                  <div className="text-rose-200 text-xs font-semibold mb-1 px-1">🧑 相手（{dateLabel(other, other.gender)}）</div>
+                  <TraditionalGogyoWheel
+                    meishiki={computed.otherMei}
+                    daiunStem={computed.otherDaiunStem}
+                    compact
+                  />
+                </div>
+              </div>
+              <p className="text-purple-400 text-[11px] mt-2 px-1 leading-relaxed">
+                ● は本気（天干・地支の主気）、△ は蔵干（地支内の余気）。+ は現在の大運、⊕ は今年の流年、＊ は月令（生まれ月の季節）を示します。左右で五行の偏りや欠けを見比べると、補い合える要素がひと目でわかります。
+              </p>
+            </div>
+
+            {/* 左右の命式比較（干支一覧） */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-white text-base font-semibold">📜 命式比較（四柱一覧）</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <MeishikiCompactCard

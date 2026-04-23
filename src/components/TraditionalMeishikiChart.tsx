@@ -15,9 +15,8 @@ import {
   getMeigu,
   toJapaneseEra,
   buildRyuunenPillar,
-  toRadarPoints,
-  ELEMENT_STROKE,
 } from "@/lib/shichusuimei";
+import { TraditionalGogyoWheel } from "@/components/TraditionalGogyoWheel";
 
 type Gender = "男" | "女";
 
@@ -92,96 +91,6 @@ function PillarColumn({
   );
 }
 
-/** 五行バランスの五角形レーダー */
-function GogyoRadar({ meishiki }: { meishiki: Meishiki }) {
-  const points = toRadarPoints(meishiki.elements);
-  const max = Math.max(...points.map((p) => p.count), 1);
-
-  const cx = 110, cy = 110, rMax = 75;
-
-  const toXY = (angleDeg: number, r: number) => {
-    const rad = (angleDeg * Math.PI) / 180;
-    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-  };
-
-  const polygonPath = points
-    .map((p) => toXY(p.angleDeg, (p.count / max) * rMax))
-    .map((pt, i) => `${i === 0 ? "M" : "L"}${pt.x.toFixed(1)},${pt.y.toFixed(1)}`)
-    .join(" ") + " Z";
-
-  return (
-    <svg viewBox="0 0 220 220" className="w-full h-auto">
-      {/* ガイド五角形 */}
-      {[0.33, 0.66, 1].map((ratio) => (
-        <polygon
-          key={ratio}
-          points={points
-            .map((p) => {
-              const { x, y } = toXY(p.angleDeg, rMax * ratio);
-              return `${x.toFixed(1)},${y.toFixed(1)}`;
-            })
-            .join(" ")}
-          fill="none"
-          stroke="#cbd5e1"
-          strokeWidth={0.6}
-        />
-      ))}
-      {/* 軸 */}
-      {points.map((p) => {
-        const { x, y } = toXY(p.angleDeg, rMax);
-        return (
-          <line
-            key={p.element}
-            x1={cx}
-            y1={cy}
-            x2={x}
-            y2={y}
-            stroke="#cbd5e1"
-            strokeWidth={0.6}
-          />
-        );
-      })}
-      {/* 実データ */}
-      <path d={polygonPath} fill="rgba(99,102,241,0.18)" stroke="#6366f1" strokeWidth={1.5} />
-      {/* 点と数値 */}
-      {points.map((p) => {
-        const radius = (p.count / max) * rMax;
-        const { x, y } = toXY(p.angleDeg, radius);
-        return (
-          <circle key={p.element} cx={x} cy={y} r={3} fill={ELEMENT_STROKE[p.element]} />
-        );
-      })}
-      {/* ラベル（五行文字） */}
-      {points.map((p) => {
-        const { x, y } = toXY(p.angleDeg, rMax + 18);
-        return (
-          <g key={`label-${p.element}`}>
-            <text
-              x={x}
-              y={y + 4}
-              fontSize="14"
-              textAnchor="middle"
-              fontFamily="serif"
-              fontWeight="bold"
-              fill={ELEMENT_STROKE[p.element]}
-            >
-              {p.label}
-            </text>
-            <text
-              x={x}
-              y={y + 17}
-              fontSize="9"
-              textAnchor="middle"
-              fill="#475569"
-            >
-              {p.count}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
 
 export function TraditionalMeishikiChart({
   year, month, day, hour, minute, gender,
@@ -288,31 +197,18 @@ export function TraditionalMeishikiChart({
           {currentEra.continuousHeiseiYear ? `（平成${currentEra.continuousHeiseiYear}）` : ""}
         </div>
 
-        {/* ────────── 五行レーダー + 主命式表 ────────── */}
+        {/* ────────── 五行円盤 + 主命式表 ────────── */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
           <div className="md:col-span-2 flex flex-col">
-            <div className="bg-white border border-stone-400 rounded-sm p-2">
-              <GogyoRadar meishiki={meishiki} />
-              <div className="text-[10px] text-stone-600 mt-1 space-y-0.5 leading-tight">
-                <div>＋→大運の五行　　⊕→流年の五行</div>
-                <div>＊→月令（季節）</div>
-                <div className="flex flex-wrap gap-x-3 pt-1 text-[10px]">
-                  {Object.entries(meishiki.elements).map(([el, n]) => (
-                    <span key={el}>
-                      <span
-                        className="font-bold"
-                        style={{ color: ELEMENT_STROKE[el as keyof typeof ELEMENT_STROKE] }}
-                      >
-                        {el}
-                      </span>
-                      ：{n}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <TraditionalGogyoWheel
+              meishiki={meishiki}
+              daiunStem={currentDaiun?.stem}
+              referenceYear={currentYear}
+              showCorners
+              showLegend
+            />
             <div className="text-[10px] text-stone-600 mt-1 px-1">
-              ← 五行の多寡を五芒星で可視化
+              ● 本気（天干・地支）　△ 蔵干（地支内の余気）
             </div>
           </div>
 
