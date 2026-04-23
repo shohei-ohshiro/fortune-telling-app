@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import { aiReadingRatelimit, getClientIdentifier } from '@/lib/ratelimit';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -7,6 +8,31 @@ const anthropic = new Anthropic({
 
 export async function POST(request: NextRequest) {
   try {
+    // レート制限チェック（Upstash Redis 未設定なら null でスキップ）
+    if (aiReadingRatelimit) {
+      const identifier = getClientIdentifier(request);
+      const { success, limit, remaining, reset } =
+        await aiReadingRatelimit.limit(identifier);
+
+      if (!success) {
+        const retryAfterSec = Math.max(1, Math.ceil((reset - Date.now()) / 1000));
+        return NextResponse.json(
+          {
+            error: `AI鑑定は1分あたり${limit}回までです。${retryAfterSec}秒後に再度お試しください。`,
+          },
+          {
+            status: 429,
+            headers: {
+              'Retry-After': String(retryAfterSec),
+              'X-RateLimit-Limit': String(limit),
+              'X-RateLimit-Remaining': String(remaining),
+              'X-RateLimit-Reset': String(reset),
+            },
+          },
+        );
+      }
+    }
+
     const body = await request.json();
     const { meishiki, numerology, animal, birthDate } = body;
 

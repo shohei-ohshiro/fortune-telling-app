@@ -61,22 +61,20 @@ function PersonForm({
       <CardContent className="space-y-3">
         <div>
           <Label className="text-purple-200 text-xs">生年月日</Label>
-          <div className="grid grid-cols-3 gap-1.5 mt-1">
-            <Input type="number" placeholder="1990" value={value.year}
-              onChange={(e) => set("year", e.target.value)}
-              className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-400 text-sm" />
-            <Input type="number" placeholder="1" value={value.month}
-              onChange={(e) => set("month", e.target.value)}
-              min="1" max="12"
-              className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-400 text-sm" />
-            <Input type="number" placeholder="1" value={value.day}
-              onChange={(e) => set("day", e.target.value)}
-              min="1" max="31"
-              className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-400 text-sm" />
-          </div>
-          <div className="grid grid-cols-3 gap-1.5 text-[10px] text-purple-400 text-center mt-0.5">
-            <span>年</span><span>月</span><span>日</span>
-          </div>
+          <Input
+            type="date"
+            value={value.year && value.month && value.day
+              ? `${value.year.padStart(4, "0")}-${value.month.padStart(2, "0")}-${value.day.padStart(2, "0")}`
+              : ""}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (!v) { onChange({ ...value, year: "", month: "", day: "" }); return; }
+              const [y, m, d] = v.split("-");
+              onChange({ ...value, year: String(Number(y)), month: String(Number(m)), day: String(Number(d)) });
+            }}
+            min="1920-01-01" max="2030-12-31"
+            className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-400 text-sm mt-1"
+          />
         </div>
 
         <div>
@@ -84,16 +82,19 @@ function PersonForm({
             <Label className="text-purple-200 text-xs">出生時刻</Label>
             <span className="text-purple-500 text-[10px]">任意</span>
           </div>
-          <div className="grid grid-cols-2 gap-1.5 mt-1">
-            <Input type="number" placeholder="時 (0-23)" value={value.hour}
-              onChange={(e) => set("hour", e.target.value)}
-              min="0" max="23"
-              className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-400 text-sm" />
-            <Input type="number" placeholder="分 (0-59)" value={value.minute}
-              onChange={(e) => set("minute", e.target.value)}
-              min="0" max="59" disabled={value.hour === ""}
-              className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-400 text-sm disabled:opacity-40" />
-          </div>
+          <Input
+            type="time"
+            value={value.hour !== ""
+              ? `${String(Number(value.hour)).padStart(2, "0")}:${String(Number(value.minute || "0")).padStart(2, "0")}`
+              : ""}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (!v) { onChange({ ...value, hour: "", minute: "" }); return; }
+              const [h, m] = v.split(":");
+              onChange({ ...value, hour: String(Number(h)), minute: String(Number(m)) });
+            }}
+            className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-400 text-sm mt-1"
+          />
         </div>
 
         <div>

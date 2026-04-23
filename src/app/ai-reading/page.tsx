@@ -81,8 +81,6 @@ function AIReadingContent() {
     }
   };
 
-  const params = `year=${year}&month=${month}&day=${day}${hour !== undefined ? `&hour=${hour}` : ''}`;
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950">
       <Header />

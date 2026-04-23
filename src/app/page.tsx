@@ -152,47 +152,24 @@ export default function HomePage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <Label className="text-purple-200">生年月日</Label>
-                <div className="grid grid-cols-3 gap-2 mt-1">
-                  <div>
-                    <Input
-                      type="number"
-                      placeholder="1990"
-                      value={year}
-                      onChange={(e) => setYear(e.target.value)}
-                      min="1920"
-                      max="2030"
-                      className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-400"
-                      required
-                    />
-                    <span className="text-xs text-purple-300 mt-0.5 block text-center">年</span>
-                  </div>
-                  <div>
-                    <Input
-                      type="number"
-                      placeholder="1"
-                      value={month}
-                      onChange={(e) => setMonth(e.target.value)}
-                      min="1"
-                      max="12"
-                      className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-400"
-                      required
-                    />
-                    <span className="text-xs text-purple-300 mt-0.5 block text-center">月</span>
-                  </div>
-                  <div>
-                    <Input
-                      type="number"
-                      placeholder="1"
-                      value={day}
-                      onChange={(e) => setDay(e.target.value)}
-                      min="1"
-                      max="31"
-                      className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-400"
-                      required
-                    />
-                    <span className="text-xs text-purple-300 mt-0.5 block text-center">日</span>
-                  </div>
-                </div>
+                <Input
+                  type="date"
+                  value={year && month && day
+                    ? `${year.padStart(4, "0")}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+                    : ""}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (!v) { setYear(""); setMonth(""); setDay(""); return; }
+                    const [y, m, d] = v.split("-");
+                    setYear(String(Number(y)));
+                    setMonth(String(Number(m)));
+                    setDay(String(Number(d)));
+                  }}
+                  min="1920-01-01"
+                  max="2030-12-31"
+                  className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-400 mt-1"
+                  required
+                />
               </div>
 
               {selectedType === "shichusuimei" && (
@@ -203,36 +180,29 @@ export default function HomePage() {
                       <Label className="text-purple-200">出生時刻</Label>
                       <span className="text-purple-500 text-xs">わかる方のみ・任意</span>
                     </div>
-                    <div className="flex items-end gap-2">
-                      <div className="flex-1">
-                        <Input
-                          type="number"
-                          placeholder="例: 14"
-                          value={hour}
-                          onChange={(e) => handleHourChange(e.target.value)}
-                          min="0"
-                          max="23"
-                          className={`bg-white/10 border-purple-500/30 text-white placeholder:text-purple-400 ${errors.hour ? "border-red-500" : ""}`}
-                        />
-                        <span className="text-xs text-purple-400 mt-0.5 block text-center">時（0〜23）</span>
-                        {errors.hour && <p className="text-red-400 text-xs mt-0.5">{errors.hour}</p>}
-                      </div>
-                      <span className="text-purple-400 mb-5">:</span>
-                      <div className="flex-1">
-                        <Input
-                          type="number"
-                          placeholder="例: 30"
-                          value={minute}
-                          onChange={(e) => { setMinute(e.target.value); if (errors.minute) setErrors((er) => ({ ...er, minute: "" })); }}
-                          min="0"
-                          max="59"
-                          disabled={hour === ""}
-                          className={`bg-white/10 border-purple-500/30 text-white placeholder:text-purple-400 disabled:opacity-40 disabled:cursor-not-allowed ${errors.minute ? "border-red-500" : ""}`}
-                        />
-                        <span className="text-xs text-purple-400 mt-0.5 block text-center">分（0〜59）</span>
-                        {errors.minute && <p className="text-red-400 text-xs mt-0.5">{errors.minute}</p>}
-                      </div>
-                    </div>
+                    <Input
+                      type="time"
+                      value={hour !== ""
+                        ? `${String(Number(hour)).padStart(2, "0")}:${String(Number(minute || "0")).padStart(2, "0")}`
+                        : ""}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        if (!v) {
+                          setHour(""); setMinute("");
+                          if (errors.hour) setErrors((er) => ({ ...er, hour: "" }));
+                          if (errors.minute) setErrors((er) => ({ ...er, minute: "" }));
+                          return;
+                        }
+                        const [h, m] = v.split(":");
+                        handleHourChange(String(Number(h)));
+                        setMinute(String(Number(m)));
+                        if (errors.minute) setErrors((er) => ({ ...er, minute: "" }));
+                      }}
+                      className={`bg-white/10 border-purple-500/30 text-white placeholder:text-purple-400 ${errors.hour ? "border-red-500" : ""}`}
+                    />
+                    {(errors.hour || errors.minute) && (
+                      <p className="text-red-400 text-xs mt-0.5">{errors.hour || errors.minute}</p>
+                    )}
                   </div>
 
                   {/* 性別 */}
