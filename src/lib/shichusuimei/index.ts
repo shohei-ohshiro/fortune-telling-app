@@ -26,3 +26,8 @@ export {
   getRyuunen, buildRyuunenPillar, toRadarPoints, ELEMENT_STROKE,
 } from './traditional';
 export type { JapaneseEra, Meigu, RyuunenPillar, ElementAngle } from './traditional';
+export { analyzeCompatibility } from './compatibility';
+export type {
+  CompatibilityResult, CompatibilityBond, BondKind, PillarPos,
+  ElementCompareRow, DayStarRelation,
+} from './compatibility';

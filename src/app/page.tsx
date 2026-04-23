@@ -284,6 +284,24 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
+        {/* 相性・因縁鑑定 CTA */}
+        <div className="mt-8 w-full max-w-md">
+          <Link href="/compatibility" className="block">
+            <div className="bg-gradient-to-r from-rose-600/30 via-pink-600/30 to-purple-600/30 border border-pink-400/40 rounded-2xl p-5 hover:from-rose-600/40 hover:to-purple-600/40 transition">
+              <div className="flex items-center gap-4">
+                <div className="text-4xl">💞</div>
+                <div className="flex-1">
+                  <p className="text-white font-bold text-base">相性・因縁を鑑定</p>
+                  <p className="text-pink-100 text-xs mt-0.5">
+                    お二人の命式を並べて因縁・相性・合う面／気をつける面を分析
+                  </p>
+                </div>
+                <span className="text-pink-200 text-xl">→</span>
+              </div>
+            </div>
+          </Link>
+        </div>
+
         {/* 詳細鑑定レポートの紹介 */}
         <div className="mt-10 w-full max-w-2xl">
           <div className="bg-gradient-to-r from-purple-900/30 to-indigo-900/20 rounded-2xl p-6 border border-purple-500/30">
@@ -315,9 +333,10 @@ export default function HomePage() {
         {/* 全占術一覧 */}
         <div className="mt-12 w-full max-w-2xl">
           <h2 className="text-white text-lg font-semibold text-center mb-4">すべての占術</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {[
               { icon: "🏛️", name: "四柱推命", desc: "命式・性格・運勢", path: "/result" },
+              { icon: "💞", name: "相性・因縁", desc: "お二人の因縁分析", path: "/compatibility" },
               { icon: "🔢", name: "数秘術", desc: "ライフパスナンバー", path: "/numerology" },
               { icon: "🐾", name: "動物占い", desc: "動物キャラ診断", path: "/animal" },
               { icon: "⭐", name: "星座占い", desc: "12星座で性格診断", path: "/zodiac" },
