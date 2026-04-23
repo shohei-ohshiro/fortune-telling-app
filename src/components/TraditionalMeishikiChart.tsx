@@ -15,6 +15,9 @@ import {
   getMeigu,
   toJapaneseEra,
   buildRyuunenPillar,
+  getTsuhensei,
+  getJuuniun,
+  getHiddenTsuhensei,
 } from "@/lib/shichusuimei";
 import { TraditionalGogyoWheel } from "@/components/TraditionalGogyoWheel";
 
@@ -112,14 +115,15 @@ export function TraditionalMeishikiChart({
       : "時刻不明";
 
   // 現在の大運柱を PillarColumn 形式に変換
+  // 日主との関係で通変星・十二運・蔵干通変を計算して埋める
   const daiunPillar = currentDaiun
     ? {
         header: "大運+",
         stem: currentDaiun.stem,
         branch: currentDaiun.branch,
-        tsuhensei: "",
-        juuniun: "",
-        hiddenStems: [] as { stem: string; tsuhensei: string }[],
+        tsuhensei: getTsuhensei(meishiki.dayStem, currentDaiun.stem),
+        juuniun: getJuuniun(meishiki.dayStem, currentDaiun.branch),
+        hiddenStems: getHiddenTsuhensei(meishiki.dayStem, currentDaiun.branch),
       }
     : null;
 
@@ -150,9 +154,6 @@ export function TraditionalMeishikiChart({
     daiunPillar
       ? {
           ...daiunPillar,
-          tsuhensei: "",
-          juuniun: "",
-          hiddenStems: [],
           highlighted: true as const,
         }
       : null,
