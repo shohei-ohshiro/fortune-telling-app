@@ -2,6 +2,7 @@
 
 import { ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { TraditionalGogyoWheel } from "@/components/TraditionalGogyoWheel";
 import {
   type Meishiki,
   type DetailedChart,
@@ -142,7 +143,7 @@ function GuideCard({
 }
 
 function MiniPillar({
-  label, stem, branch, top, bottom, dim,
+  label, stem, branch, top, bottom, dim, accent,
 }: {
   label: string;
   stem: string;
@@ -150,12 +151,25 @@ function MiniPillar({
   top?: string;
   bottom?: string;
   dim?: boolean;
+  accent?: "rose" | "indigo";
 }) {
   const stemEl = STEM_ELEMENTS[stem as keyof typeof STEM_ELEMENTS];
   const branchEl = BRANCH_ELEMENTS[branch as keyof typeof BRANCH_ELEMENTS];
+  const headerClass =
+    accent === "rose"
+      ? "bg-rose-700 text-white border-rose-800"
+      : accent === "indigo"
+      ? "bg-indigo-700 text-white border-indigo-800"
+      : "bg-stone-200 text-stone-700 border-stone-400";
+  const tintedCellClass =
+    accent === "rose"
+      ? "bg-rose-50/60"
+      : accent === "indigo"
+      ? "bg-indigo-50/60"
+      : "bg-stone-50";
   return (
     <div className={`w-10 ${dim ? "opacity-50" : ""}`}>
-      <div className="text-[8px] bg-stone-200 text-stone-700 border border-stone-400 text-center py-0.5">
+      <div className={`text-[8px] text-center py-0.5 font-semibold border ${headerClass}`}>
         {label}
       </div>
       <div
@@ -165,7 +179,7 @@ function MiniPillar({
         {stem}
       </div>
       {top && (
-        <div className="text-[8px] text-center border-x border-b border-stone-400 bg-stone-50">
+        <div className={`text-[8px] text-center border-x border-b border-stone-400 ${tintedCellClass}`}>
           {top}
         </div>
       )}
@@ -176,7 +190,7 @@ function MiniPillar({
         {branch}
       </div>
       {bottom && (
-        <div className="text-[8px] text-center border-x border-b border-stone-400 bg-stone-50">
+        <div className={`text-[8px] text-center border-x border-b border-stone-400 ${tintedCellClass}`}>
           {bottom}
         </div>
       )}
@@ -305,7 +319,7 @@ export function TraditionalChartGuide({
               <div className="text-stone-600">（平成{currentEra.continuousHeiseiYear}）</div>
             )}
             <div className="mt-1 flex justify-center">
-              <MiniPillar label="流年" stem={ryuunen.stem} branch={ryuunen.branch} />
+              <MiniPillar label="流年+" stem={ryuunen.stem} branch={ryuunen.branch} accent="rose" />
             </div>
           </div>
         }
@@ -339,64 +353,21 @@ export function TraditionalChartGuide({
         </p>
       </GuideCard>
 
-      {/* ③ 五行レーダー */}
+      {/* ③ 五行円盤 */}
       <GuideCard
         badge="③"
-        title="五行レーダー：生まれ持った気のバランス"
+        title="五行円盤：生まれ持った気のバランス"
         preview={
-          <svg viewBox="0 0 160 160" className="w-full h-auto max-w-[150px]">
-            {(() => {
-              const pts = [
-                { el: "木", a: -90 },
-                { el: "火", a: -90 + 72 },
-                { el: "土", a: -90 + 144 },
-                { el: "金", a: -90 + 216 },
-                { el: "水", a: -90 + 288 },
-              ];
-              const cx = 80, cy = 80, rMax = 50;
-              const max = Math.max(...pts.map((p) => meishiki.elements[p.el as Element]), 1);
-              const coords = pts.map(({ a, el }) => {
-                const rad = (a * Math.PI) / 180;
-                const r = (meishiki.elements[el as Element] / max) * rMax;
-                return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-              });
-              const axisCoords = pts.map(({ a }) => {
-                const rad = (a * Math.PI) / 180;
-                return { x: cx + rMax * Math.cos(rad), y: cy + rMax * Math.sin(rad) };
-              });
-              return (
-                <>
-                  <polygon
-                    points={axisCoords.map((p) => `${p.x},${p.y}`).join(" ")}
-                    fill="none"
-                    stroke="#cbd5e1"
-                    strokeWidth="0.8"
-                  />
-                  <polygon
-                    points={coords.map((p) => `${p.x},${p.y}`).join(" ")}
-                    fill="rgba(99,102,241,0.20)"
-                    stroke="#6366f1"
-                    strokeWidth="1.5"
-                  />
-                  {pts.map((p, i) => (
-                    <text
-                      key={p.el}
-                      x={axisCoords[i].x}
-                      y={axisCoords[i].y + 4}
-                      textAnchor="middle"
-                      fontSize="13"
-                      fontFamily="serif"
-                      fontWeight="bold"
-                      fill={ELEMENT_COLORS[p.el as Element]}
-                      dy={axisCoords[i].y < cy ? -8 : 14}
-                    >
-                      {p.el}
-                    </text>
-                  ))}
-                </>
-              );
-            })()}
-          </svg>
+          <div className="w-full max-w-[220px]">
+            <TraditionalGogyoWheel
+              meishiki={meishiki}
+              daiunStem={currentDaiun?.stem}
+              referenceYear={currentYear}
+              compact
+              showCorners={false}
+              showLegend={false}
+            />
+          </div>
         }
         yourCase={
           <>
@@ -419,12 +390,20 @@ export function TraditionalChartGuide({
               <span className="text-amber-200">最弱は「{weakest[0]}」（{weakest[1]}個）：</span>
               {WEAKEST_ELEMENT_MEANING[weakest[0]]}
             </p>
+            <p className="text-purple-300/80 text-[11px] leading-relaxed pt-1">
+              円盤内の
+              <span className="text-purple-100"> ● </span>は天干・地支の<b>本気</b>の数、
+              <span className="text-purple-100"> △ </span>は地支内に隠れる<b>蔵干</b>の数。
+              <span className="text-purple-100">＋</span>＝現在の大運、
+              <span className="text-purple-100">⊕</span>＝今年の流年、
+              <span className="text-blue-200">＊</span>＝月令（季節）の位置を示します。
+            </p>
           </>
         }
       >
         <p>
-          命式に現れる天干・地支を<b>木・火・土・金・水</b>の5つに集計して五角形で可視化。
-          <span className="text-rose-300">頂点が大きい＝その気が強い</span>、内側にへこんでいる＝その気が不足。
+          命式に現れる天干・地支を<b>木（上）・火（右上）・土（右下）・金（左下）・水（左上）</b>の5つの位置に集計して円盤で可視化。
+          <span className="text-rose-300">●が多い＝その気が強い</span>、●が無い＝その気が不足。
           強い気＝得意な性質、弱い気＝補うべき方向です。
         </p>
       </GuideCard>
@@ -518,9 +497,9 @@ export function TraditionalChartGuide({
         title="大運+／流年+：「今」の運勢柱"
         preview={
           <div className="flex gap-0.5">
-            <MiniPillar label="流年+" stem={ryuunen.stem} branch={ryuunen.branch} />
+            <MiniPillar label="流年+" stem={ryuunen.stem} branch={ryuunen.branch} accent="rose" />
             {currentDaiun && (
-              <MiniPillar label="大運+" stem={currentDaiun.stem} branch={currentDaiun.branch} />
+              <MiniPillar label="大運+" stem={currentDaiun.stem} branch={currentDaiun.branch} accent="indigo" />
             )}
           </div>
         }
@@ -568,7 +547,7 @@ export function TraditionalChartGuide({
                   <div
                     key={p.startAge}
                     className={`border border-stone-400 text-center ${
-                      isCurrent ? "ring-2 ring-rose-500 bg-rose-50" : "bg-white"
+                      isCurrent ? "ring-2 ring-indigo-500 bg-indigo-50" : "bg-white"
                     }`}
                   >
                     <div className="text-[8px] bg-stone-100 border-b border-stone-300">
@@ -620,7 +599,7 @@ export function TraditionalChartGuide({
           <p>
             横一列に並ぶのは
             <span className="text-rose-300 font-semibold">10年ごとの「人生の季節」</span>を表した大運の一覧。
-            <span className="bg-rose-500/30 px-1 rounded">赤枠</span>が現在の大運です。
+            <span className="bg-indigo-500/30 px-1 rounded">藍の枠</span>が現在の大運です。
             男女・年干の陰陽で進む方向（順行／逆行）が決まり、スタート年齢は節入りまでの日数で算出されます。
           </p>
         </GuideCard>

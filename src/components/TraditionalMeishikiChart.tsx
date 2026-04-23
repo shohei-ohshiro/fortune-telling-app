@@ -44,7 +44,7 @@ function PillarColumn({
   tsuhensei,
   juuniun,
   hiddenStems,
-  highlighted,
+  accent,
   dim,
 }: {
   header: string;
@@ -53,42 +53,56 @@ function PillarColumn({
   tsuhensei: string;
   juuniun: string;
   hiddenStems: { stem: string; tsuhensei: string }[];
-  highlighted?: boolean;
+  /** ヘッダー色をアクセントに：rose=流年、indigo=大運、undefined=通常 */
+  accent?: "rose" | "indigo";
   dim?: boolean;
 }) {
   const stemEl = STEM_ELEMENTS[stem as keyof typeof STEM_ELEMENTS];
   const branchEl = BRANCH_ELEMENTS[branch as keyof typeof BRANCH_ELEMENTS];
+
+  const headerClass =
+    accent === "rose"
+      ? "bg-rose-700 text-white border-rose-800"
+      : accent === "indigo"
+      ? "bg-indigo-700 text-white border-indigo-800"
+      : "bg-stone-200 text-stone-700 border-stone-400";
+
+  const tintedCellClass =
+    accent === "rose"
+      ? "bg-rose-50/60"
+      : accent === "indigo"
+      ? "bg-indigo-50/60"
+      : "bg-stone-50";
+
   return (
-    <div
-      className={`flex flex-col items-stretch ${dim ? "opacity-70" : ""} ${
-        highlighted ? "ring-2 ring-rose-500 rounded-sm" : ""
-      }`}
-    >
-      <div className="text-center text-[10px] bg-stone-200 text-stone-700 border border-stone-400 py-0.5 tracking-widest">
+    <div className={`flex flex-col items-stretch ${dim ? "opacity-70" : ""}`}>
+      <div
+        className={`text-center text-[10px] border py-0.5 tracking-widest font-semibold ${headerClass}`}
+      >
         {header}
       </div>
       <div
-        className="text-center font-bold text-xl border-x border-b border-stone-400 py-1"
+        className="text-center font-bold text-xl border-x border-b border-stone-400 py-1 bg-white"
         style={{ color: stemEl ? ELEMENT_COLORS[stemEl] : undefined, fontFamily: "serif" }}
       >
         {stem}
       </div>
-      <div className="text-center text-[10px] border-x border-b border-stone-400 py-0.5 bg-stone-50">
+      <div className={`text-center text-[10px] border-x border-b border-stone-400 py-0.5 ${tintedCellClass}`}>
         {tsuhensei || "—"}
       </div>
       <div
-        className="text-center font-bold text-xl border-x border-b border-stone-400 py-1"
+        className="text-center font-bold text-xl border-x border-b border-stone-400 py-1 bg-white"
         style={{ color: branchEl ? ELEMENT_COLORS[branchEl] : undefined, fontFamily: "serif" }}
       >
         {branch}
       </div>
-      <div className="text-center text-[10px] border-x border-b border-stone-400 py-0.5 bg-stone-50">
-        {juuniun}
+      <div className={`text-center text-[10px] border-x border-b border-stone-400 py-0.5 ${tintedCellClass}`}>
+        {juuniun || "—"}
       </div>
-      <div className="text-center text-[10px] border-x border-b border-stone-400 py-0.5 leading-tight bg-white">
-        {hiddenStems.map((h) => (
-          <div key={h.stem}>{h.tsuhensei}</div>
-        ))}
+      <div className="text-center text-[10px] border-x border-b border-stone-400 py-0.5 leading-tight bg-white min-h-[20px]">
+        {hiddenStems.length > 0
+          ? hiddenStems.map((h) => <div key={h.stem}>{h.tsuhensei}</div>)
+          : <div className="text-stone-400">—</div>}
       </div>
     </div>
   );
@@ -149,12 +163,12 @@ export function TraditionalMeishikiChart({
       tsuhensei: ryuunen.tsuhensei,
       juuniun: ryuunen.juuniun,
       hiddenStems: ryuunen.hiddenStems,
-      highlighted: true,
+      accent: "rose" as const,
     },
     daiunPillar
       ? {
           ...daiunPillar,
-          highlighted: true as const,
+          accent: "indigo" as const,
         }
       : null,
     ...pillarsOrdered.map((p, idx) => ({
@@ -164,9 +178,8 @@ export function TraditionalMeishikiChart({
       tsuhensei: p.stemTsuhensei ?? "日主",
       juuniun: p.juuniun,
       hiddenStems: p.hiddenStems,
-      highlighted: false,
+      accent: undefined,
       dim: false,
-      // 日柱だけ強調
       isDay: p.label === "日柱",
       _idx: idx,
     })),
@@ -177,7 +190,7 @@ export function TraditionalMeishikiChart({
     tsuhensei: string;
     juuniun: string;
     hiddenStems: { stem: string; tsuhensei: string }[];
-    highlighted?: boolean;
+    accent?: "rose" | "indigo";
     dim?: boolean;
   }>;
 
@@ -258,7 +271,7 @@ export function TraditionalMeishikiChart({
                   <div
                     key={idx}
                     className={`border-r border-b border-stone-400 text-center ${
-                      isCurrent ? "bg-rose-50 ring-2 ring-rose-500 relative z-10" : ""
+                      isCurrent ? "bg-indigo-50 ring-2 ring-indigo-500 relative z-10" : ""
                     }`}
                   >
                     <div className="text-[10px] text-stone-600 border-b border-stone-300 py-0.5">
