@@ -491,6 +491,115 @@ function CompatibilityInner() {
               </CardContent>
             </Card>
 
+            {/* 二人のための具体アドバイス（各400〜800字の実践的な提案） */}
+            <Card className="bg-gradient-to-br from-fuchsia-900/30 via-purple-900/40 to-indigo-900/30 border-fuchsia-400/40">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2 text-lg">
+                  <span>💡</span>二人のための具体アドバイス（{computed.result.deepDive.practical.totalChars}字）
+                </CardTitle>
+                <p className="text-purple-200 text-xs leading-relaxed">
+                  一緒にしたらいいこと・行くと良い場所・同居した時の関係性・住むなら選びたい場所・おすすめの趣味という5つの切り口で、生活レベルの具体アドバイスをお届けします。
+                </p>
+                {/* 目次（スキップ用） */}
+                <div className="flex flex-wrap gap-1.5 pt-2">
+                  {([
+                    { id: "practical-together", label: "🎯 行動", color: "text-teal-200 bg-teal-900/40 border-teal-400/40" },
+                    { id: "practical-places", label: "🗺️ 場所", color: "text-sky-200 bg-sky-900/40 border-sky-400/40" },
+                    { id: "practical-living-rel", label: "🏠 同居", color: "text-fuchsia-200 bg-fuchsia-900/40 border-fuchsia-400/40" },
+                    { id: "practical-living-place", label: "🧭 住まい", color: "text-cyan-200 bg-cyan-900/40 border-cyan-400/40" },
+                    { id: "practical-hobbies", label: "🎨 趣味", color: "text-lime-200 bg-lime-900/40 border-lime-400/40" },
+                  ] as const).map((a) => (
+                    <a
+                      key={a.id}
+                      href={`#${a.id}`}
+                      className={`inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full border ${a.color} hover:opacity-80 transition`}
+                    >
+                      {a.label}
+                    </a>
+                  ))}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {([
+                  {
+                    id: "practical-together",
+                    icon: "🎯",
+                    title: "二人でしたほうがいいこと",
+                    subtitle: "日々のアクションとルーティンの作り方",
+                    color: "teal",
+                    body: computed.result.deepDive.practical.togetherActivities,
+                  },
+                  {
+                    id: "practical-places",
+                    icon: "🗺️",
+                    title: "二人で行くといい場所",
+                    subtitle: "気が整う場所・魅力が引き出される場所",
+                    color: "sky",
+                    body: computed.result.deepDive.practical.recommendedPlaces,
+                  },
+                  {
+                    id: "practical-living-rel",
+                    icon: "🏠",
+                    title: "一緒に住んだときの関係性",
+                    subtitle: "同居で立ち上がる空気感と役割分担",
+                    color: "fuchsia",
+                    body: computed.result.deepDive.practical.livingRelation,
+                  },
+                  {
+                    id: "practical-living-place",
+                    icon: "🧭",
+                    title: "一緒に住むならどんな場所がいいか",
+                    subtitle: "立地・間取り・方角の選び方",
+                    color: "cyan",
+                    body: computed.result.deepDive.practical.livingPlace,
+                  },
+                  {
+                    id: "practical-hobbies",
+                    icon: "🎨",
+                    title: "おすすめの趣味",
+                    subtitle: "共通の軸になる趣味と避けたい組み合わせ",
+                    color: "lime",
+                    body: computed.result.deepDive.practical.hobbies,
+                  },
+                ] as const).map((sec) => {
+                  const colorMap: Record<string, { bar: string; title: string; box: string; sub: string; chars: string }> = {
+                    teal:    { bar: "border-teal-400/70",    title: "text-teal-200",    box: "bg-teal-900/25",    sub: "text-teal-300/80",    chars: "text-teal-400/70" },
+                    sky:     { bar: "border-sky-400/70",     title: "text-sky-200",     box: "bg-sky-900/25",     sub: "text-sky-300/80",     chars: "text-sky-400/70" },
+                    fuchsia: { bar: "border-fuchsia-400/70", title: "text-fuchsia-200", box: "bg-fuchsia-900/25", sub: "text-fuchsia-300/80", chars: "text-fuchsia-400/70" },
+                    cyan:    { bar: "border-cyan-400/70",    title: "text-cyan-200",    box: "bg-cyan-900/25",    sub: "text-cyan-300/80",    chars: "text-cyan-400/70" },
+                    lime:    { bar: "border-lime-400/70",    title: "text-lime-200",    box: "bg-lime-900/25",    sub: "text-lime-300/80",    chars: "text-lime-400/70" },
+                  };
+                  const c = colorMap[sec.color];
+                  return (
+                    <div
+                      key={sec.id}
+                      id={sec.id}
+                      className={`${c.box} rounded-lg p-4 border-l-4 ${c.bar} scroll-mt-20`}
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div>
+                          <div className={`${c.title} font-semibold text-sm flex items-center gap-1.5`}>
+                            <span className="text-base">{sec.icon}</span>{sec.title}
+                          </div>
+                          <div className={`${c.sub} text-[11px] mt-0.5`}>{sec.subtitle}</div>
+                        </div>
+                        <span className={`${c.chars} text-[10px] shrink-0 pt-0.5 font-mono`}>
+                          {sec.body.length}字
+                        </span>
+                      </div>
+                      <p className="text-purple-50 text-sm leading-[1.85] whitespace-pre-line">
+                        {sec.body}
+                      </p>
+                    </div>
+                  );
+                })}
+
+                <p className="text-purple-300/70 text-[11px] leading-relaxed pt-1 px-1">
+                  ※ 上記は命式の五行・通変星・因縁から導いた傾向です。最終的な意思決定はお二人の対話で。迷った時に立ち返る&ldquo;地図&rdquo;として使ってください。
+                </p>
+              </CardContent>
+            </Card>
+
             {/* 因縁の一覧 */}
             <Card className="bg-white/5 border-purple-500/30">
               <CardHeader>

@@ -65,6 +65,23 @@ export interface CompatibilityDeepDive {
   longTerm: string;
   /** 合計字数（参考値） */
   totalChars: number;
+  /** 二人のための具体アドバイス（各400〜800字） */
+  practical: CompatibilityPracticalAdvice;
+}
+
+export interface CompatibilityPracticalAdvice {
+  /** 二人でしたほうがいいこと */
+  togetherActivities: string;
+  /** 二人で行くといい場所 */
+  recommendedPlaces: string;
+  /** 一緒に住んだときの関係性 */
+  livingRelation: string;
+  /** 一緒に住むならどんな場所がいいか */
+  livingPlace: string;
+  /** おすすめの趣味 */
+  hobbies: string;
+  /** 合計字数（参考値） */
+  totalChars: number;
 }
 
 export interface CompatibilityResult {
@@ -584,6 +601,302 @@ function buildLongTermNarrative(
   return band + karma;
 }
 
+/* ----------------------------------------------------------
+ * ── 具体アドバイス（活動／場所／住まい／趣味） ──────────
+ * ---------------------------------------------------------- */
+
+/** 五行ごとのライフスタイル要素（活動・場所・住まい・趣味） */
+const ELEMENT_ACTIVITIES: Record<Element, {
+  together: string; place: string; livingPlace: string; hobby: string; interior: string;
+}> = {
+  '木': {
+    together: '植物園めぐり・新しい街の散策・ハーブ栽培など成長を感じる活動',
+    place: '京都の寺社、高原リゾート、ガーデンや植物園、森の中のカフェ',
+    livingPlace: '大きな公園の近く、街路樹の多い住宅街、緑のベランダを作れる広さ',
+    hobby: '家庭菜園、キャンプ、登山、盆栽、ガーデニング',
+    interior: '植物を育てたり木製家具を取り入れる',
+  },
+  '火': {
+    together: 'フェスやライブ観戦・ホームパーティ・食べ歩きなど熱量の高い活動',
+    place: '夜景のきれいな高台、賑わう繁華街、花火大会、サウナ',
+    livingPlace: '駅近の活気ある街、南向きで日当たりの良い部屋、大きな窓のあるリビング',
+    hobby: 'ダンス、料理教室、スポーツ観戦、写真、音楽制作',
+    interior: 'キャンドルを灯したり暖色系ライトを増やす',
+  },
+  '土': {
+    together: '温泉旅行・陶芸体験・古民家ステイなどゆったりと身体を労わる活動',
+    place: '温泉地、田園の広がる里、古都の街並み、和菓子や老舗の喫茶',
+    livingPlace: '郊外の静かな住宅街、庭付きや広いリビングのある戸建て',
+    hobby: '陶芸、パン作り、ガーデニング、書道、のんびりドライブ',
+    interior: '陶器や土器、アースカラーの布を飾る',
+  },
+  '金': {
+    together: '美術館・博物館めぐり、クラシック鑑賞、部屋を一緒に整えるなど整うを楽しむ活動',
+    place: '美術館・ギャラリー、設計の美しいホテル、神社仏閣、ジュエリー店',
+    livingPlace: '整った新築マンション、ミニマルで機能的な住まい、整然とした区画',
+    hobby: '書道、茶道、古美術収集、ミニマルライフ、ワインやウィスキー鑑賞',
+    interior: '金属系アートやシャープな照明で整える',
+  },
+  '水': {
+    together: '図書館で静かに読書・深夜の語り合い・映画三昧など内省を深める活動',
+    place: '海辺のリゾート、湖畔、水族館、深夜の静かなバー、露天のある温泉',
+    livingPlace: '川や海の近く、夜景の見える高層階、落ち着いた住宅地',
+    hobby: '読書会、映画鑑賞、瞑想、釣り、アクアリウム、じっくり対話',
+    interior: '小さな水槽や水音の出るオブジェを置く',
+  },
+};
+
+/** 二人でしたほうがいいこと */
+function buildTogetherActivityNarrative(
+  elementCompare: ElementCompareRow[],
+  dayStar: DayStarRelation,
+  bonds: CompatibilityBond[],
+): string {
+  const selfTop = [...elementCompare].sort((a, b) => b.self - a.self)[0];
+  const otherTop = [...elementCompare].sort((a, b) => b.other - a.other)[0];
+  const selfAct = ELEMENT_ACTIVITIES[selfTop.element];
+  const otherAct = ELEMENT_ACTIVITIES[otherTop.element];
+  const sameTop = selfTop.element === otherTop.element;
+  const hasSangou = bonds.some((b) => b.kind === '三合');
+  const hasRikugouDay = bonds.some((b) => b.kind === '六合' && b.selfPos === '日' && b.otherPos === '日');
+  const t = dayStar.fromOtherToSelf;
+
+  const parts: string[] = [];
+
+  if (sameTop) {
+    // 主役が重なる場合は、相手側の2番目の五行を引き出してバランスを取る
+    const otherSecond = [...elementCompare].sort((a, b) => b.other - a.other)[1];
+    const secondAct = ELEMENT_ACTIVITIES[otherSecond.element];
+    parts.push(`二人とも五行の主役が「${selfTop.element}」で、${selfAct.together}に深く共鳴するタイプ。似た感覚を持つからこそ、意識的に「新しい刺激」を一緒に取りに行くことが関係のマンネリ化を防ぐ最大のコツです。`);
+    parts.push(`【おすすめ①】${selfAct.together}。二人の共通言語になるコア活動。週1回ペースでリズム化すると関係の土台になります。`);
+    parts.push(`【おすすめ②】${secondAct.together}。相手の2番目の気「${otherSecond.element}」を活かす活動で、相手の意外な一面を引き出しつつ、同じ気に偏りすぎないバランスを取れます。`);
+    parts.push(`【おすすめ③】月に1度は「初めての場所・初めての体験」を二人で開拓する時間を作ること。似た者同士の二人が視野狭窄に陥らないための大切な予防策です。`);
+  } else {
+    parts.push(`あなたの主役は「${selfTop.element}」、相手の主役は「${otherTop.element}」と五行が異なります。それぞれの気が満ちる時間を交互に用意することで、どちらかだけが我慢する関係を避けられます。`);
+    parts.push(`【おすすめ①】${selfAct.together}。あなたの気が充電される活動に相手を誘うと、自然体のあなたを見せられ、相手もあなたの素顔に触れられます。`);
+    parts.push(`【おすすめ②】${otherAct.together}。相手の得意領域に同行すると、普段気づかない相手のイキイキとした表情を発見できます。`);
+    parts.push(`【おすすめ③】月に1度は「初めての場所・初めての体験」を二人で開拓する時間を作ること。マンネリ予防と、共通の思い出のストック作りに直結します。`);
+  }
+
+  if (t === '食神' || t === '傷官') {
+    parts.push(`日干関係が『${t}』のため、あなたが作って相手が味わう構図が自然。料理・ハンドメイド・旅行の計画など「あなたが提供し相手が楽しむ」形の活動が特に盛り上がります。`);
+  } else if (t === '印綬' || t === '偏印') {
+    parts.push(`日干関係が『${t}』で、相手があなたを支える流れ。相手の得意分野を教わる・相手の実家の料理を学ぶなど「受け取る」タイプの時間が二人を深く結びます。`);
+  } else if (t === '正官' || t === '偏官') {
+    parts.push(`日干関係が『${t}』で、相手の言葉があなたを律する構図。資格試験・ダイエット・マラソンなど「共通の目標達成」系に取り組むと、相手が最強のコーチになります。`);
+  } else if (t === '正財' || t === '偏財') {
+    parts.push(`日干関係が『${t}』で、あなたが仕切る構図。旅行や企画を主導しつつ、選択肢を3つ提示して相手に選んでもらう形にすると、押しつけ感が消えて対等になります。`);
+  } else {
+    parts.push(`日主が近い『${t}』の関係で、ボードゲーム・スポーツ・楽器セッションなど「同じリズムを刻む」活動が特にハマります。テンポが揃うので息の合った連携が楽しめます。`);
+  }
+
+  if (hasSangou) {
+    parts.push(`二人で三合会局を成す強い縁があるため、「共通の長期目標」を掲げて動くとシナジーが最大化。貯金・勉強・ダイエットなど、一緒に始めたことは想像以上の成果を生みます。`);
+  } else if (hasRikugouDay) {
+    parts.push(`日柱の六合があり、お互いの欠けを埋め合う関係。家事や旅行の役割分担など「補完し合う動き」が自然に機能するので、あえて分担を明確化すると心地よさが増します。`);
+  }
+
+  return parts.join('\n\n');
+}
+
+/** 二人で行くといい場所 */
+function buildRecommendedPlacesNarrative(
+  elementCompare: ElementCompareRow[],
+  bonds: CompatibilityBond[],
+): string {
+  const selfTop = [...elementCompare].sort((a, b) => b.self - a.self)[0];
+  const otherTop = [...elementCompare].sort((a, b) => b.other - a.other)[0];
+  const missingForBoth = elementCompare.find((r) => r.self + r.other <= 1);
+  const selfAct = ELEMENT_ACTIVITIES[selfTop.element];
+  const otherAct = ELEMENT_ACTIVITIES[otherTop.element];
+  const strongLucky = bonds.filter((b) => b.polarity === '吉').length >= 3;
+
+  const parts: string[] = [];
+
+  parts.push(`二人の五行バランスから「気が整う場所」「魅力が引き出される場所」を紹介します。訪れる場所の気と命式の気が共鳴すると、関係のステージが上がります。`);
+
+  if (selfTop.element === otherTop.element) {
+    const otherSecond = [...elementCompare].sort((a, b) => b.other - a.other)[1];
+    const secondPlace = ELEMENT_ACTIVITIES[otherSecond.element].place;
+    parts.push(`【二人の主役「${selfTop.element}」が映える場所】${selfAct.place}。同じ気を好む二人には「行くと確実に機嫌が良くなる鉄板スポット」となります。定番として2〜3箇所ストックしておくと便利。`);
+    parts.push(`【相手の裏テーマ「${otherSecond.element}」を満たす場所】${secondPlace}。相手の二番目の気に触れる場所へ行くと、普段見えない表情が出てきます。主役だけでは気づけない相手の奥行きを発見できます。`);
+  } else {
+    parts.push(`【あなたが輝く場所】${selfAct.place}。あなたのエネルギーが充電される場所に相手を案内すると、普段見せない表情や本音が自然に出てきます。`);
+    parts.push(`【相手が輝く場所】${otherAct.place}。相手が元気になる場所に合わせることで、相手の新しい魅力が見え、あなた自身の世界も広がります。`);
+  }
+
+  if (missingForBoth) {
+    const missPlace = ELEMENT_ACTIVITIES[missingForBoth.element].place;
+    parts.push(`【二人に不足する「${missingForBoth.element}」を補う場所】${missPlace}。二人の命式に薄い気を浴びに行くと、関係の盲点が埋まります。年2〜3回のペースで意識的に訪れるのが吉。`);
+  } else {
+    parts.push(`【迷ったら訪れる場所】神社仏閣・温泉地・高原リゾートは五行が整う中立的な場所で、喧嘩した後の仲直り旅行や、大きな決断の前にもおすすめです。`);
+  }
+
+  if (strongLucky) {
+    parts.push(`吉縁が豊富な二人には、歴史あるパワースポット（伊勢・出雲・京都・鎌倉・沖縄の御嶽など）への旅が特に効果的。強い縁が場所の気と響き合い、二人の関係が一段深まる体験になります。`);
+  } else {
+    parts.push(`車で1時間圏内に「二人の聖地」を1つ決めておくと関係が安定します。公園・温泉・美術館など、気軽に通える定番を作り、月1で訪れるリズムを大切に。`);
+  }
+
+  parts.push(`【逆に避けたい場所】二人の気が偏って強まりすぎる場所（「火」が強い二人が真夏の屋外フェスばかり選ぶなど）は疲労の原因に。季節ごとに行き先のテーマを変え、バランスを取るのが長続きのコツです。`);
+
+  return parts.join('\n\n');
+}
+
+/** 一緒に住んだときの関係性 */
+function buildLivingRelationNarrative(
+  self: Meishiki, other: Meishiki,
+  dayStar: DayStarRelation,
+  bonds: CompatibilityBond[],
+): string {
+  const selfYY = STEM_YINYANG[self.dayStem];
+  const otherYY = STEM_YINYANG[other.dayStem];
+  const bothYang = selfYY === '陽' && otherYY === '陽';
+  const bothYin = selfYY === '陰' && otherYY === '陰';
+  const t = dayStar.fromOtherToSelf;
+  const hasKei = bonds.some((b) => b.kind === '刑');
+  const hasChong = bonds.some((b) => b.kind === '沖');
+  const hasGou = bonds.some((b) => b.kind === '干合' || b.kind === '六合' || b.kind === '三合' || b.kind === '半三合');
+
+  const parts: string[] = [];
+
+  parts.push(`同居したときに立ち上がる二人の空気感・役割分担・注意点を、日主の陰陽と通変星から読み解きます。実際の生活で起こりやすいシーンを想定しながら読んでみてください。`);
+
+  if (bothYang) {
+    parts.push(`【空気感】二人とも陽干（「${self.dayStem}」と「${other.dayStem}」）で、家の中は明るく活発。音楽や話し声がよく響き「帰ると元気が出る家」になります。ただしテンションが常に高めなので、意識的に"静けさの時間"を設計しないと疲弊します。`);
+  } else if (bothYin) {
+    parts.push(`【空気感】二人とも陰干（「${self.dayStem}」と「${other.dayStem}」）で、家の中は静かで落ち着いた雰囲気。隣で本を読んでいても気まずくならない二人ですが、モヤモヤが言葉にならないまま溜まりがち。週1の会話時間で安定します。`);
+  } else {
+    parts.push(`【空気感】陽干と陰干の組み合わせ（「${self.dayStem}」と「${other.dayStem}」）で、家の中に活発さと静けさが共存。片方が賑やかに話し、片方が受け止める自然な役割分担が生まれる、居心地のいい空間になります。`);
+  }
+
+  if (t === '印綬' || t === '偏印') {
+    parts.push(`【役割】相手があなたを支える『${t}』の構図。家での相手は"心の充電器"になり、仕事で疲れた日ほど帰宅するとホッとできます。甘えすぎて相手が消耗しないよう、月1で相手が完全に一人になれる時間を贈るのがバランス。`);
+  } else if (t === '食神' || t === '傷官') {
+    parts.push(`【役割】あなたが相手を生かす『${t}』の構図。料理・家事・段取りなど、あなたが"供給する側"になる場面が多めです。与えすぎて空っぽにならないよう、相手に甘える時間も意識的に確保しましょう。`);
+  } else if (t === '正官' || t === '偏官') {
+    parts.push(`【役割】相手があなたを律する『${t}』の構図。生活リズム・家計・ルールなど相手のペースが基準になりがち。合理的なら快適ですが、息苦しさを感じたら早めに話し合い、ルールを見直すのが鉄則です。`);
+  } else if (t === '正財' || t === '偏財') {
+    parts.push(`【役割】あなたが主導する『${t}』の構図。家計・休日・インテリアなどの意思決定はあなたが中心に。相手は寛大に乗ってくれますが、決定を独占しすぎないよう「相手が決める領域」を1〜2つ確保して。`);
+  } else {
+    parts.push(`【役割】日主が近い『${t}』の関係で、対等なルームメイトのような距離感。家事分担や空間の使い方でぶつかりやすいので、同居初期に「担当制」を明文化すると揉め事が激減します。`);
+  }
+
+  if (hasKei || hasChong) {
+    parts.push(`【注意点】沖や刑の縁を持っているため、狭い空間で24時間一緒にいると摩擦が出やすい配置です。ワンルームではなく1LDK以上で、お互いが1人になれる小さなコーナーを確保することが同居成功の必須条件になります。`);
+  } else if (hasGou) {
+    parts.push(`【強み】合の縁が豊富なので、一緒に過ごす時間が長いほど絆が深まるタイプ。リビング中心の間取りで自然と顔を合わせる設計が特に相性良好です。`);
+  } else {
+    parts.push(`【相性】同居のストレスも強すぎる惹きつけもなく、ほどよい距離感で穏やかに暮らせる二人。ルールを縛りすぎず、お互いのペースを尊重するくらいがちょうど良い配置です。`);
+  }
+
+  parts.push(`【同居のコツ】最初の3ヶ月で"お互いの譲れない生活ルール"を3つずつ書き出して共有するのが鉄則。音量・清潔さ・時間感覚など細部の擦り合わせを先にやるほど、後の揉め事が激減します。${hasGou ? '縁が深い二人ほど甘えがちなので、最初が肝心。' : '大きな縁に頼らない関係だからこそ、ルールの明文化が安定剤になります。'}`);
+
+  return parts.join('\n\n');
+}
+
+/** 一緒に住むならどんな場所がいいか */
+function buildLivingPlaceNarrative(
+  elementCompare: ElementCompareRow[],
+  bonds: CompatibilityBond[],
+): string {
+  const selfTop = [...elementCompare].sort((a, b) => b.self - a.self)[0];
+  const otherTop = [...elementCompare].sort((a, b) => b.other - a.other)[0];
+  const missing = elementCompare.find((r) => r.self + r.other <= 1);
+  const selfAct = ELEMENT_ACTIVITIES[selfTop.element];
+  const otherAct = ELEMENT_ACTIVITIES[otherTop.element];
+  const sameTop = selfTop.element === otherTop.element;
+  const hasKei = bonds.some((b) => b.kind === '刑');
+  const hasChong = bonds.some((b) => b.kind === '沖');
+
+  const parts: string[] = [];
+
+  parts.push(`二人の五行バランスから、住まい選びで押さえたい条件を紹介します。立地・間取り・方角の3軸で見ていきましょう。`);
+
+  if (sameTop) {
+    parts.push(`【立地】二人とも主役が「${selfTop.element}」なので、${selfAct.livingPlace}が最適。同じ気を好むため物件選びで揉めにくい反面、その気に偏りすぎる物件は疲労を招きやすいので、逆の要素も少し混ぜると長持ちします。`);
+  } else {
+    parts.push(`【立地】あなたは「${selfTop.element}」系（${selfAct.livingPlace}）、相手は「${otherTop.element}」系（${otherAct.livingPlace}）が心地良い配置。両方の条件を少しずつ満たす立地が理想です。例えば駅から少し離れて静かだがカフェやスーパーは徒歩圏という街がバランス良好。`);
+  }
+
+  if (missing) {
+    const missAct = ELEMENT_ACTIVITIES[missing.element];
+    parts.push(`【補強ポイント】二人の命式に不足する「${missing.element}」の気を、家や近所で補えると関係が安定します。${missAct.interior}のような小さな工夫だけでも効果があり、散歩圏内に${missing.element === '木' ? '公園' : missing.element === '水' ? '川や池' : missing.element === '火' ? '陽当たりの良い開けた場所' : missing.element === '土' ? '畑や広場' : '整った街並み'}があるとベター。`);
+  }
+
+  if (hasKei || hasChong) {
+    parts.push(`【間取り】摩擦因子があるため、リビングとは別に「それぞれの逃げ場」になる小部屋・書斎コーナーが必須。1LDK以上、できれば2DK以上で、お互いが別作業を同時にできる設計にすると長く穏やかに暮らせます。`);
+  } else {
+    parts.push(`【間取り】衝突因子が少なく、リビング中心の間取りで顔を合わせる時間が長くても疲れにくい配置。ただし将来のライフステージ変化を見越して、1部屋は"用途自由"な予備室を持っておくと柔軟性が増します。`);
+  }
+
+  const dominantEl = sameTop ? selfTop.element :
+    [selfTop.element, otherTop.element].includes('木') ? '木' :
+    [selfTop.element, otherTop.element].includes('火') ? '火' :
+    [selfTop.element, otherTop.element].includes('土') ? '土' :
+    [selfTop.element, otherTop.element].includes('金') ? '金' : '水';
+  const dir: Record<Element, string> = {
+    '木': '東〜北東（朝日が差す向き）', '火': '南向きで日当たり重視',
+    '土': '南西〜北東の安定した方位', '金': '西向き、または整然とした区画',
+    '水': '北向きで水辺を臨む立地',
+  };
+  parts.push(`【方角のヒント】${dir[dominantEl]}が、二人の気にもっとも合いやすい方角です。あくまで目安ですが、候補が複数あって迷ったときの判断材料として使えます。`);
+
+  parts.push(`【予算より優先すべき条件】二人の場合、駅距離や広さより「気が整う環境」のほうが長期満足度に直結します。少し予算オーバーでも、上記の立地・方角・間取り条件を満たすほうが、結果的に関係の質を守る投資になります。`);
+
+  return parts.join('\n\n');
+}
+
+/** おすすめの趣味 */
+function buildHobbyNarrative(
+  elementCompare: ElementCompareRow[],
+  dayStar: DayStarRelation,
+  bonds: CompatibilityBond[],
+): string {
+  const selfTop = [...elementCompare].sort((a, b) => b.self - a.self)[0];
+  const otherTop = [...elementCompare].sort((a, b) => b.other - a.other)[0];
+  const missing = elementCompare.find((r) => r.self + r.other <= 1);
+  const selfAct = ELEMENT_ACTIVITIES[selfTop.element];
+  const otherAct = ELEMENT_ACTIVITIES[otherTop.element];
+  const t = dayStar.fromOtherToSelf;
+  const hasSangou = bonds.some((b) => b.kind === '三合');
+
+  const parts: string[] = [];
+
+  parts.push(`二人の五行と通変星から、一緒に育てると相性の良い趣味を提案します。「共通の熱中できる何か」を持つ二人は、時間の経過とともに絆が深まっていきます。`);
+
+  if (selfTop.element === otherTop.element) {
+    parts.push(`【メイン趣味】二人の主役「${selfTop.element}」にちなんだ${selfAct.hobby}から1つを共通の軸に。予算・時間・生活リズムに合うものを選び、週1回以上コンスタントに触れられる形にできると最も長続きします。`);
+  } else {
+    parts.push(`【メイン趣味】${selfAct.hobby}または${otherAct.hobby}の中から、予算・時間・生活リズムに合うものを1つ選び共通の軸に。週1回以上コンスタントに触れられる趣味が最も長続きします。`);
+  }
+
+  if (missing) {
+    const missAct = ELEMENT_ACTIVITIES[missing.element];
+    parts.push(`【バランス趣味】不足する「${missing.element}」の気を補う趣味として、${missAct.hobby}がおすすめ。メイン趣味と並行して月1〜2回のペースで取り入れると、関係の弱点がじんわり埋まっていきます。`);
+  }
+
+  if (t === '食神' || t === '傷官') {
+    parts.push(`【通変からの提案】あなたが与える『${t}』の関係なので、料理・お菓子作り・手芸・DIYなど「あなたが作り相手が味わう」系の趣味が特にハマります。相手の素直な喜びがあなたの満足感に直結します。`);
+  } else if (t === '印綬' || t === '偏印') {
+    parts.push(`【通変からの提案】相手があなたを育てる『${t}』の関係なので、読書会・美術鑑賞・歴史散策など「学ぶ系」が最適。相手が先生役、あなたが生徒役になると自然に学びが深まります。`);
+  } else if (t === '正官' || t === '偏官') {
+    parts.push(`【通変からの提案】規律系の『${t}』の関係で、武道・ランニング・筋トレ・資格勉強など「達成目標のある」趣味が向きます。お互いを励まし監視する仲間として最強の組み合わせです。`);
+  } else if (t === '正財' || t === '偏財') {
+    parts.push(`【通変からの提案】あなたが動かす『${t}』の関係で、旅行・グルメ巡り・投資・副業など「行動量が問われる」趣味が◎。あなたが企画し相手が乗る形で、活動範囲が一気に広がります。`);
+  } else {
+    parts.push(`【通変からの提案】日主が近い『${t}』の関係で、ボードゲーム・音楽セッション・共同制作など「同じ場で一緒に動く」趣味がフィット。テンポが揃うので息の合った連携が楽しめます。`);
+  }
+
+  if (hasSangou) {
+    parts.push(`【達成系チャレンジ】三合を成す強い縁があるので、フルマラソン完走・副業で月10万円・語学ペラペラなど"長期目標"系に取り組むと想像以上の成果が残ります。結果が形に残る挑戦を選ぶのがおすすめ。`);
+  }
+
+  parts.push(`【避けたい組み合わせ】片方だけが熱中し、もう片方は付き合うだけ、という趣味は長期的にモチベーション格差を生みます。温度差を感じたら無理に合わせず、「一緒にやる時間」と「別々で楽しむ時間」を明確に分けるのが賢いやり方です。`);
+
+  return parts.join('\n\n');
+}
+
 /** 全観点をまとめた深掘り分析 */
 function buildDeepDive(
   self: Meishiki, other: Meishiki,
@@ -599,7 +912,21 @@ function buildDeepDive(
   const communication = buildCommunicationNarrative(self, other, dayStar);
   const longTerm = buildLongTermNarrative(overallScore, karmaStrength);
   const totalChars = daily.length + conflict.length + values.length + communication.length + longTerm.length;
-  return { daily, conflict, values, communication, longTerm, totalChars };
+
+  const togetherActivities = buildTogetherActivityNarrative(elementCompare, dayStar, bonds);
+  const recommendedPlaces = buildRecommendedPlacesNarrative(elementCompare, bonds);
+  const livingRelation = buildLivingRelationNarrative(self, other, dayStar, bonds);
+  const livingPlace = buildLivingPlaceNarrative(elementCompare, bonds);
+  const hobbies = buildHobbyNarrative(elementCompare, dayStar, bonds);
+  const practicalTotal = togetherActivities.length + recommendedPlaces.length + livingRelation.length + livingPlace.length + hobbies.length;
+
+  return {
+    daily, conflict, values, communication, longTerm, totalChars,
+    practical: {
+      togetherActivities, recommendedPlaces, livingRelation, livingPlace, hobbies,
+      totalChars: practicalTotal,
+    },
+  };
 }
 
 /* ----------------------------------------------------------
