@@ -650,30 +650,33 @@ function CompatibilityInner() {
                 </p>
               </CardHeader>
               <CardContent className="space-y-2">
-                {computed.result.elementCompare.map((row) => (
-                  <div key={row.element} className="grid grid-cols-[28px_1fr_28px_1fr_28px] items-center gap-2">
-                    <span className="text-xs text-blue-200 text-right">{row.self}</span>
-                    <div className="h-3 bg-white/5 rounded-full overflow-hidden flex justify-end">
-                      <div className="h-full" style={{
-                        width: `${Math.min(100, row.self * 20)}%`,
-                        backgroundColor: ELEMENT_COLORS[row.element],
-                        opacity: 0.8,
-                      }} />
+                {computed.result.elementCompare.map((row) => {
+                  const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
+                  return (
+                    <div key={row.element} className="grid grid-cols-[36px_1fr_28px_1fr_36px] items-center gap-2">
+                      <span className="text-xs text-blue-200 text-right tabular-nums">{fmt(row.self)}</span>
+                      <div className="h-3 bg-white/5 rounded-full overflow-hidden flex justify-end">
+                        <div className="h-full" style={{
+                          width: `${Math.min(100, row.self * 20)}%`,
+                          backgroundColor: ELEMENT_COLORS[row.element],
+                          opacity: 0.8,
+                        }} />
+                      </div>
+                      <span className="font-bold text-sm text-center"
+                        style={{ color: ELEMENT_COLORS[row.element] }}>
+                        {row.element}
+                      </span>
+                      <div className="h-3 bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-full" style={{
+                          width: `${Math.min(100, row.other * 20)}%`,
+                          backgroundColor: ELEMENT_COLORS[row.element],
+                          opacity: 0.8,
+                        }} />
+                      </div>
+                      <span className="text-xs text-rose-200 tabular-nums">{fmt(row.other)}</span>
                     </div>
-                    <span className="font-bold text-sm text-center"
-                      style={{ color: ELEMENT_COLORS[row.element] }}>
-                      {row.element}
-                    </span>
-                    <div className="h-3 bg-white/5 rounded-full overflow-hidden">
-                      <div className="h-full" style={{
-                        width: `${Math.min(100, row.other * 20)}%`,
-                        backgroundColor: ELEMENT_COLORS[row.element],
-                        opacity: 0.8,
-                      }} />
-                    </div>
-                    <span className="text-xs text-rose-200">{row.other}</span>
-                  </div>
-                ))}
+                  );
+                })}
                 <div className="flex justify-between text-[10px] text-purple-400 px-1 pt-1">
                   <span>← あなた</span>
                   <span>相手 →</span>

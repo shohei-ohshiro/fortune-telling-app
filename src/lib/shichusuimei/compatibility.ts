@@ -396,16 +396,19 @@ function detectBonds(self: Meishiki, other: Meishiki): CompatibilityBond[] {
  * ── 五行の比較 ─────────────────────────────────────────────
  * ---------------------------------------------------------- */
 function compareElements(self: Meishiki, other: Meishiki): ElementCompareRow[] {
+  // 蔵干重み付けの精密値を使用。地支内に隠れた五行まで含めた実質的なバランスを比較する
   return (ELEMENT_CYCLE as Element[]).map((el) => {
-    const a = self.elements[el];
-    const b = other.elements[el];
+    const a = self.elementsWeighted[el];
+    const b = other.elementsWeighted[el];
     const diff = a - b;
+    // 微量（余気のみ 0.2〜0.3）は「不足」扱いにする閾値
+    const scarce = 0.4;
     let comment: string;
-    if (a === 0 && b > 0) {
+    if (a < scarce && b >= 1) {
       comment = `あなたに不足する${el}を相手が補える`;
-    } else if (b === 0 && a > 0) {
+    } else if (b < scarce && a >= 1) {
       comment = `相手に不足する${el}をあなたが補える`;
-    } else if (Math.abs(diff) >= 3) {
+    } else if (Math.abs(diff) >= 2.5) {
       comment = `${el}の量に大きな差。バランス感覚に違いが出やすい`;
     } else if (a + b >= 5) {
       comment = `${el}が合計で多く、二人の空間は${el}のテーマで満ちる`;
@@ -527,8 +530,8 @@ function buildValuesNarrative(
   const otherTop = [...elementCompare].sort((a, b) => b.other - a.other)[0];
   const selfTrait = ELEMENT_LIFESTYLE[selfTop.element];
   const otherTrait = ELEMENT_LIFESTYLE[otherTop.element];
-  const missingForSelf = elementCompare.find((r) => r.self === 0 && r.other > 0);
-  const missingForOther = elementCompare.find((r) => r.other === 0 && r.self > 0);
+  const missingForSelf = elementCompare.find((r) => r.self < 0.4 && r.other >= 1);
+  const missingForOther = elementCompare.find((r) => r.other < 0.4 && r.self >= 1);
 
   if (selfTop.element === otherTop.element) {
     return `あなたも相手も五行の主役が「${selfTop.element}」（${selfTrait.trait}）で、${selfTrait.valueFocus}という価値観のコアが重なっています。例えば休日には二人とも${selfTrait.weekend}傾向が強く、行動選択に迷いにくい配置。ただし似た者同士のため、第三者の視点（家族や友人）を意識的に取り入れないと、二人の世界に閉じこもって視野が狭くなりやすいので注意。${missingForSelf ? `また、あなたに不足する『${missingForSelf.element}』の気を相手が${missingForSelf.other}持っており、そこが補完ポイントです。` : ''}`;
@@ -957,8 +960,8 @@ export function analyzeCompatibility(
   const elementCompare = compareElements(self, other);
   let supportScore = 0;
   for (const row of elementCompare) {
-    if (row.self === 0 && row.other > 0) supportScore += 2;
-    if (row.other === 0 && row.self > 0) supportScore += 2;
+    if (row.self < 0.4 && row.other >= 1) supportScore += 2;
+    if (row.other < 0.4 && row.self >= 1) supportScore += 2;
   }
 
   // 相性スコア（0〜100）
@@ -1003,11 +1006,11 @@ export function analyzeCompatibility(
     goodPoints.push('同じ地支を共有するため、感覚や空気感が似ていて安心しやすい。');
   }
   for (const row of elementCompare) {
-    if (row.self === 0 && row.other > 0) {
-      goodPoints.push(`あなたの命式に無い「${row.element}」を相手が豊かに持ち、弱点を自然に補ってくれる。`);
+    if (row.self < 0.4 && row.other >= 1) {
+      goodPoints.push(`あなたの命式に乏しい「${row.element}」を相手が豊かに持ち、弱点を自然に補ってくれる。`);
     }
-    if (row.other === 0 && row.self > 0) {
-      goodPoints.push(`相手の命式に無い「${row.element}」をあなたが補える。相手から頼られやすい立場。`);
+    if (row.other < 0.4 && row.self >= 1) {
+      goodPoints.push(`相手の命式に乏しい「${row.element}」をあなたが補える。相手から頼られやすい立場。`);
     }
   }
   if (goodPoints.length === 0 && goodBonds.length > 0) {
@@ -1039,13 +1042,14 @@ export function analyzeCompatibility(
 
   // 異なる面（五行のギャップ中心）
   const bigDiff = elementCompare
-    .filter((r) => Math.abs(r.diff) >= 2)
+    .filter((r) => Math.abs(r.diff) >= 1.8)
     .sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
+  const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
   for (const row of bigDiff.slice(0, 3)) {
     if (row.diff > 0) {
-      differentPoints.push(`「${row.element}」はあなたに多く相手に少ない（${row.self}対${row.other}）。${row.element}が司る領域で感覚差が出やすい。`);
+      differentPoints.push(`「${row.element}」はあなたに多く相手に少ない（${fmt(row.self)}対${fmt(row.other)}）。${row.element}が司る領域で感覚差が出やすい。`);
     } else {
-      differentPoints.push(`「${row.element}」は相手に多くあなたに少ない（${row.self}対${row.other}）。相手のペースに合わせすぎない距離感を。`);
+      differentPoints.push(`「${row.element}」は相手に多くあなたに少ない（${fmt(row.self)}対${fmt(row.other)}）。相手のペースに合わせすぎない距離感を。`);
     }
   }
   if (differentPoints.length === 0) {

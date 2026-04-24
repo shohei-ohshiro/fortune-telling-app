@@ -1,5 +1,7 @@
-export { calculateMeishiki, getTsuhensei } from './calculator';
+export { calculateMeishiki, getTsuhensei, longitudeOffsetMinutes, HIDDEN_STEMS_WEIGHTED } from './calculator';
 export type { Meishiki } from './calculator';
+export { PREFECTURE_LONGITUDES } from './locations';
+export type { PrefectureLocation, PrefectureKey } from './locations';
 export { getPersonality, PERSONALITY_MAP } from './personality';
 export type { PersonalityProfile } from './personality';
 export {
